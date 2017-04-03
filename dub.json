@@ -1,0 +1,30 @@
+{
+    "name": "dmocks-revived",
+    "description": "A mocking framework for the D programming language",
+    "homepage": "http://github.com/QAston/DMocks-revived",
+    "authors": [
+        "QAston"
+    ],
+    "license": "BSD",
+    "sourcePaths": [
+        "dmocks"
+    ],
+    "importPaths": [
+        "."
+    ],
+    "configurations": [
+        {
+            "name": "library",
+            "targetType": "library"
+        },
+        {
+            "name": "tests",
+            "targetType": "executable",
+            "versions": [
+                "DMocksTest",
+                "DMocksTestStandalone",
+                "DMocksDebug"
+            ]
+        }
+    ]
+}
