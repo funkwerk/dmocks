@@ -21,11 +21,15 @@ string nullableToString(T)(T obj)
 
 void debugLog(T...)(lazy T args) @trusted nothrow
 {
-    version (DMocksDebug) {
-        try {
-            std.stdio.writefln(args);
+    version (DMocksDebug)
+    {
+        try
+        {
+            import std.stdio;
+            writefln(args);
         }
-        catch (Exception ex) {
+        catch (Exception ex)
+        {
             assert (false, "Could not write to error log");
         }
     }
