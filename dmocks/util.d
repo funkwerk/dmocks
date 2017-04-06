@@ -5,13 +5,6 @@ import std.utf;
 import std.string;
 public import dmocks.interval;
 
-
-string test(string name)() {
-    return `std.stdio.writefln(__FILE__~" line: %d"~": ` ~ name ~ ` test", __LINE__);
-            scope(failure) std.stdio.writeln("failed");
-            scope(success) std.stdio.writeln("success");`;
-}
-
 string nullableToString(T)(T obj)
 {
     if (obj is null)
@@ -21,11 +14,15 @@ string nullableToString(T)(T obj)
 
 void debugLog(T...)(lazy T args) @trusted nothrow
 {
-    version (DMocksDebug) {
-        try {
-            std.stdio.writefln(args);
+    version (DMocksDebug)
+    {
+        try
+        {
+            import std.stdio;
+            writefln(args);
         }
-        catch (Exception ex) {
+        catch (Exception ex)
+        {
             assert (false, "Could not write to error log");
         }
     }

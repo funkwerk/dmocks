@@ -9,9 +9,17 @@ obj
 *.exe_cv
 *.pdb
 
-# project files
-.dub
+# Project files
 *.suo
 *.sln
 *.visualdproj
 *.dproj
+
+# Dub files
+.dub
+dub.selections.json
+
+# Dub binaries
+/dmocks-revived
+/dmocks-revived-test-library
+/examples/basic/basic*
