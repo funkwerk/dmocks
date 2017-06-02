@@ -2,6 +2,7 @@ module dmocks.action;
 
 import dmocks.util;
 import dmocks.dynamic;
+import std.traits;
 
 package:
 
@@ -38,7 +39,7 @@ struct ReturnOrPass (T)
 {
     static if (!is (T == void))
     {
-        T value;
+        Unqual!T value;
     }
 
     bool pass;
@@ -83,14 +84,14 @@ struct Actor
         {
             if (self.returnValue !is null)
             {
-                rope.value = self.returnValue().get!(TReturn);
+                rope.value = self.returnValue().get!(Unqual!TReturn);
             }
             else if (self.action !is null)
             {
                 debugLog("action found, type: %s", self.action().type);
                 if (self.action().type == typeid(TReturn delegate(ArgTypes)))
                 {
-                    rope.value = self.action().get!(TReturn delegate(ArgTypes))()(args);
+                    rope.value = self.action().get!(Unqual!TReturn delegate(ArgTypes))()(args);
                 }
                 else
                 {
