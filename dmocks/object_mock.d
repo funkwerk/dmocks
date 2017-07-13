@@ -6,6 +6,7 @@ import dmocks.method_mock;
 import dmocks.model;
 import dmocks.qualifiers;
 
+import core.vararg;
 import std.traits;
 import std.typecons;
 
