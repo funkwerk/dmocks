@@ -103,7 +103,7 @@ class MockRepository
     {
         alias ReturnType!(FunctionTypeOf!(METHOD)) TReturn;
 
-        ReturnOrPass!(TReturn) rope;
+        auto rope = ReturnOrPass!(TReturn).init;
         auto call = createCall!METHOD(mocked, name, args);
         debugLog("checking Recording...");
         if (Recording)

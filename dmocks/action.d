@@ -54,7 +54,7 @@ struct Actor
     {
         debugLog("Actor:act");
 
-        ReturnOrPass!(TReturn) rope;
+        auto rope = ReturnOrPass!(TReturn).init;
         if (self.passThrough)
         {
             rope.pass = true;
