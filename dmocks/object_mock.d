@@ -1,6 +1,5 @@
 module dmocks.object_mock;
 
-static import dmocks.action;
 import dmocks.util;
 import dmocks.repository;
 import dmocks.method_mock;
@@ -121,7 +120,7 @@ auto ref mockMethodCall(alias self, string name, T, OBJ, CALLER, FORWARD, Args..
     {
         assert(false, "owner cannot be null! Contact the stupid mocks developer.");
     }
-    auto rope = dmocks.action.ReturnOrPass!(ReturnType!(FunctionTypeOf!(self))).init;
+    dmocks.action.ReturnOrPass!(ReturnType!(FunctionTypeOf!(self))) rope;
     void setRope()
     {
         // CAST CHEATS here - can't operate on const/shared refs without cheating on typesystem. this makes these calls threadunsafe

@@ -35,11 +35,18 @@ enum ActionStatus
     FailBadAction,
 }
 
-struct ReturnOrPass (T)
+struct ReturnOrPass(T)
 {
-    static if (!is (T == void))
+    static if (!is(T == void))
     {
-        Unqual!T value;
+        static if (is(typeof({ Unqual!T value; })))
+        {
+            Unqual!T value;
+        }
+        else
+        {
+            auto value = Unqual!T.init;
+        }
     }
 
     bool pass;
@@ -54,7 +61,7 @@ struct Actor
     {
         debugLog("Actor:act");
 
-        auto rope = ReturnOrPass!(TReturn).init;
+        ReturnOrPass!(TReturn) rope;
         if (self.passThrough)
         {
             rope.pass = true;
