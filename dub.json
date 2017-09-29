@@ -18,19 +18,13 @@
             "targetType": "library"
         },
         {
-            "name": "tests",
-            "targetType": "executable",
-            "versions": [
-                "DMocksTest",
-                "DMocksTestStandalone",
-                "DMocksDebug"
-            ]
-        },
-        {
             "name": "unittest",
             "targetType": "executable",
             "sourcePaths": ["test"],
-            "mainSourceFile": "test/main.d"
+            "mainSourceFile": "test/main.d",
+			"versions": [
+                "DMocksTest"
+			]
         }
     ]
 }

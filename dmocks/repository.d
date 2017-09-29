@@ -173,33 +173,31 @@ class MockRepository
         return apndr.data;
     }
 
-    version (DMocksTest)
+    // Repository record/replay
+    private unittest
     {
-        unittest {
-            mixin(test!("repository record/replay"));
+        MockRepository r = new MockRepository();
+        assert (r.Recording());
+        r.Replay();
+        assert (!r.Recording());
+        r.BackToRecord();
+        assert (r.Recording());
+    }
 
-            MockRepository r = new MockRepository();
-            assert (r.Recording());
-            r.Replay();
-            assert (!r.Recording());
-            r.BackToRecord();
-            assert (r.Recording());
-        }
-
-        
-        // test for correctly formulated template
-        unittest {
-            class A
+    
+    // Test for correctly formulated template
+    private unittest
+    {
+        class A
+        {
+            public void a()
             {
-                public void a()
-                {
-                }
             }
-            auto a = new A;
-            auto c = new MockRepository();
-            auto mid = new MockId;
-            //c.Call!(a.a)(mid, "a");
-            static assert(__traits(compiles, c.MethodCall!(a.a)(mid, "a")));
         }
+        auto a = new A;
+        auto c = new MockRepository();
+        auto mid = new MockId;
+        //c.Call!(a.a)(mid, "a");
+        static assert(__traits(compiles, c.MethodCall!(a.a)(mid, "a")));
     }
 }

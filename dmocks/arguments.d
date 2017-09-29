@@ -87,25 +87,22 @@ auto formatArguments(Dynamic[] _arguments)
     return "(" ~ _arguments.map!(a=>a.type.toString ~ " " ~ a.toString()).join(", ") ~")";
 }
 
-version (DMocksTest)
+// Argument equality
+private unittest
 {
-    unittest {
-        mixin(test!("argument equality"));
+    auto a = arguments!(int, real)(5, 9.7);
+    auto b = arguments!(int, real)(5, 9.7);
+    auto c = arguments!(int, real)(9, 1.1);
+    auto d = arguments!(int, float)(5, 9.7f);
 
-        auto a = arguments!(int, real)(5, 9.7);
-        auto b = arguments!(int, real)(5, 9.7);
-        auto c = arguments!(int, real)(9, 1.1);
-        auto d = arguments!(int, float)(5, 9.7f);
+    assert (a == b);
+    assert (a != c);
+    assert (a != d);
+}
 
-        assert (a == b);
-        assert (a != c);
-        assert (a != d);
-    }
-
-    unittest {
-        mixin(test!("argument toString"));
-
-        auto a = arguments!(int, real)(5, 9.7);
-        a.formatArguments();
-    }
+// Argument toString
+private unittest
+{
+    auto a = arguments!(int, real)(5, 9.7);
+    a.formatArguments();
 }

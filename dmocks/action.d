@@ -181,53 +181,50 @@ private
     }
 }
 
-version (DMocksTest)
+// Action returnValue
+private unittest
 {
-    unittest
-    {
-        mixin(test!("action returnValue"));
-        Dynamic v = dynamic(5);
-        Action act = new Action(typeid(int));
-        assert (act.returnValue is null);
-        act.returnValue = v;
-        assert (act.returnValue() == dynamic(5));
-    }
-    
-    unittest
-    {
-        mixin(test!("action action"));
-        Dynamic v = dynamic(5);
-        Action act = new Action(typeid(int));
-        assert (act.action is null);
-        act.action = v;
-        assert (act.action() == v);
-    }
-    
-    unittest
-    {
-        mixin(test!("action exception"));
-        Exception ex = new Exception("boogah");
-        Action act = new Action(typeid(int));
-        assert (act.toThrow is null);
-        act.toThrow = ex;
-        assert (act.toThrow is ex);
-    }
-    
-    unittest 
-    {
-        mixin(test!("action passthrough"));
-        Action act = new Action(typeid(int));
-        act.passThrough = true;
-        assert (act.passThrough());
-        act.passThrough = false;
-        assert (!act.passThrough());
-    }
+    Dynamic v = dynamic(5);
+    Action act = new Action(typeid(int));
+    assert (act.returnValue is null);
+    act.returnValue = v;
+    assert (act.returnValue() == dynamic(5));
+}
 
-    unittest
-    {
-        mixin(test!("action hasAction"));
-        Action act = new Action(typeid(int));
-        act.returnValue(dynamic(5));
-        assert(act.hasAction);
-    }
+// Action action
+private unittest
+{
+    Dynamic v = dynamic(5);
+    Action act = new Action(typeid(int));
+    assert (act.action is null);
+    act.action = v;
+    assert (act.action() == v);
+}
+
+// Action exception
+private unittest
+{
+    Exception ex = new Exception("boogah");
+    Action act = new Action(typeid(int));
+    assert (act.toThrow is null);
+    act.toThrow = ex;
+    assert (act.toThrow is ex);
+}
+
+// Action passthrough
+private unittest 
+{
+    Action act = new Action(typeid(int));
+    act.passThrough = true;
+    assert (act.passThrough());
+    act.passThrough = false;
+    assert (!act.passThrough());
+}
+
+// Action hasAction
+private unittest
+{
+    Action act = new Action(typeid(int));
+    act.returnValue(dynamic(5));
+    assert(act.hasAction);
 }

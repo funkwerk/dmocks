@@ -12,12 +12,6 @@ import std.typecons;
 
 class Mocked (T) : T 
 {
-    /+version (DMocksDebug) 
-    {
-        pragma (msg, T.stringof);
-        pragma (msg, Body!(T));
-    }+/
-
     static if(__traits(hasMember, T,"__ctor"))
         this(ARGS...)(ARGS args)
         {
@@ -26,8 +20,6 @@ class Mocked (T) : T
 
     package MockRepository _owner;
     package MockId mockId___ = new MockId;
-    version (DMocksDebug)
-        public string _body = Body!(T, true);
     mixin ((Body!(T, true)));
 }
 

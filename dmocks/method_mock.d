@@ -18,11 +18,6 @@ Returns a string containing the overrides for this method
 and all its overloads.
 ++/
 string Methods (T, bool INHERITANCE, string methodName) () {
-    /+version(DMocksDebug)
-    {
-        pragma(msg, methodName);
-        pragma(msg, T);
-    }+/
     string methodBodies = "";
 
     static if (is (typeof(__traits(getOverloads, T, methodName))))

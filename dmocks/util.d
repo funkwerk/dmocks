@@ -14,7 +14,7 @@ string nullableToString(T)(T obj)
 
 void debugLog(T...)(lazy T args) @trusted nothrow
 {
-    version (DMocksDebug)
+    debug (dmocks)
     {
         try
         {
@@ -61,4 +61,3 @@ public class MocksSetupException : Exception {
         super (typeof(this).stringof ~ ": " ~ msg);
     }
 }
-

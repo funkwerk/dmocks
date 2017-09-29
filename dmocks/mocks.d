@@ -387,8 +387,8 @@ public class ExpectationSetup
 /// backward compatibility alias
 alias ExpectationSetup ExternalCall;
 
-version (DMocksTest) {
-    
+version (DMocksTest)
+{
     class Templated(T) {}
     interface IM {
         void bar ();
@@ -413,36 +413,42 @@ version (DMocksTest) {
         }
     }
 
-    unittest {
-        mixin(test!("nontemplated mock"));
+    // Nontemplated mock
+    private unittest
+    {
         (new Mocker()).mock!(Object);
     }
 
-    unittest {
-        mixin(test!("templated mock"));
+    // Templated mock
+    private unittest
+    {
         (new Mocker()).mock!(Templated!(int));
     }
 
-    unittest {
-        mixin(test!("templated mock"));
+    // Templated mock
+    private unittest
+    {
         (new Mocker()).mock!(IM);
     }
 
-    unittest {
-        mixin(test!("execute mock method"));
+    // Execute mock method
+    private unittest
+    {
         auto r = new Mocker();
         auto o = r.mock!(Object);
         o.toString();
     }
 
-    unittest {
-        mixin(test!("constructor argument"));
+    // Constructor argument
+    private unittest
+    {
         auto r = new Mocker();
         auto o = r.mock!(ConstructorArg)(4);
     }
 
-    unittest {
-        mixin(test!("lastCall"));
+    // LastCall
+    private unittest
+    {
         Mocker m = new Mocker();
         SimpleObject o = m.mock!(SimpleObject);
         o.print;
@@ -451,9 +457,9 @@ version (DMocksTest) {
         assert (e !is null);
     }
 
-    unittest {
-        mixin(test!("return a value"));
-
+    // Return a value
+    private unittest
+    {
         Mocker m = new Mocker();
         Object o = m.mock!(Object);
         o.toString;
@@ -463,9 +469,9 @@ version (DMocksTest) {
         e.returns("frobnitz");
     }
 
-    unittest {
-        mixin(test!("unexpected call"));
-
+    // Unexpected call
+    private unittest
+    {
         Mocker m = new Mocker();
         Object o = m.mock!(Object);
         m.replay();
@@ -475,9 +481,9 @@ version (DMocksTest) {
         } catch (ExpectationViolationException) {}
     }
 
-    unittest {
-        mixin(test!("expect"));
-
+    // Expect
+    private unittest
+    {
         Mocker m = new Mocker();
         Object o = m.mock!(Object);
         m.expect(o.toString).repeat(0).returns("mrow?");
@@ -487,9 +493,9 @@ version (DMocksTest) {
         } catch (Exception e) {}
     }
 
-    unittest {
-        mixin(test!("repeat single"));
-
+    // Repeat single
+    private unittest
+    {
         Mocker m = new Mocker();
         Object o = m.mock!(Object);
         m.expect(o.toString).repeat(2).returns("foom?");
@@ -504,9 +510,9 @@ version (DMocksTest) {
         } catch (ExpectationViolationException) {}
     }
 
-    unittest {
-        mixin(test!("repository match counts"));
-
+    // Repository match counts
+    private unittest
+    {
         auto r = new Mocker();
         auto o = r.mock!(Object);
         o.toString;
@@ -518,9 +524,9 @@ version (DMocksTest) {
         } catch (ExpectationViolationException) {}
     }
 
-    unittest {
-        mixin(test!("delegate payload"));
-
+    // Delegate payload
+    private unittest
+    {
         bool calledPayload = false;
         Mocker r = new Mocker();
         auto o = r.mock!(SimpleObject);
@@ -533,9 +539,9 @@ version (DMocksTest) {
         assert (calledPayload);
     }
 
-    unittest {
-        mixin(test!("exception payload"));
-
+    // Exception payload
+    private unittest
+    {
         Mocker r = new Mocker();
         auto o = r.mock!(SimpleObject);
 
@@ -557,9 +563,9 @@ version (DMocksTest) {
         protected void method () {}
     }
 
-    unittest {
-        mixin(test!("passthrough"));
-
+    // Passthrough
+    private unittest
+    {
         Mocker r = new Mocker();
         auto o = r.mock!(Object);
         o.toString;
@@ -570,8 +576,9 @@ version (DMocksTest) {
         assert (str == "dmocks.object_mock.Mocked!(Object).Mocked", str);
     }
 
-    unittest {
-        mixin(test!("class with constructor init check"));
+    // Class with constructor init check
+    private unittest
+    {
         auto r = new Mocker();
         auto o = r.mock!(ConstructorArg)(4);
         o.getA();
@@ -580,9 +587,9 @@ version (DMocksTest) {
         assert (4 == o.getA());
     }
 
-    unittest {
-        mixin(test!("associative arrays"));
-
+    // Associative arrays
+    private unittest
+    {
         Mocker r = new Mocker();
         auto o = r.mock!(Object);
         r.expect(o.toHash()).passThrough().repeatAny;
@@ -594,9 +601,9 @@ version (DMocksTest) {
         int j = i[o];
     }
 
-    unittest {
-        mixin(test!("ordering in order"));
-
+    // Ordering in order
+    private unittest
+    {
         Mocker r = new Mocker();
         auto o = r.mock!(Object);
         r.ordered;
@@ -609,9 +616,9 @@ version (DMocksTest) {
         r.verify;
     }
 
-    unittest {
-        mixin(test!("ordering not in order"));
-
+    // Ordering not in order
+    private unittest
+    {
         Mocker r = new Mocker();
         auto o = r.mock!(Object);
         r.ordered;
@@ -626,9 +633,9 @@ version (DMocksTest) {
         } catch (ExpectationViolationException) {}
     }
 
-    unittest {
-        mixin(test!("ordering interposed"));
-
+    // Ordering interposed
+    private unittest
+    {
         Mocker r = new Mocker();
         auto o = r.mock!(SimpleObject);
         r.ordered;
@@ -643,9 +650,9 @@ version (DMocksTest) {
         o.toString;
     }
 
-    unittest {
-        mixin(test!("allow unexpected"));
-
+    // Allow unexpected
+    private unittest
+    {
         Mocker r = new Mocker();
         auto o = r.mock!(Object);
         r.ordered;
@@ -664,9 +671,9 @@ version (DMocksTest) {
         r.verify(true, false);
     }
 
-    unittest {
-        mixin(test!("allowing"));
-
+    // Allowing
+    private unittest
+    {
         Mocker r = new Mocker();
         auto o = r.mock!(Object);
         r.allowing(o.toString).returns("foom?");
@@ -678,9 +685,9 @@ version (DMocksTest) {
         r.verify;
     }
 
-    unittest {
-        mixin(test!("nothing for method to do"));
-
+    // Nothing for method to do
+    private unittest
+    {
         try {
             Mocker r = new Mocker();
             auto o = r.mock!(Object);
@@ -692,9 +699,9 @@ version (DMocksTest) {
         }
     }
 
-    unittest {
-        mixin(test!("allow defaults test"));
-
+    // Allow defaults test
+    private unittest
+    {
         Mocker r = new Mocker();
         auto o = r.mock!(Object);
         r.allowDefaults;
@@ -711,9 +718,9 @@ version (DMocksTest) {
     class Smthng : IFace {
         void foo (string s) { }
     }
-//
-//    unittest {
-//        mixin(test!("going through the guts of Smthng"));
+      // Going through the guts of Smthng
+//    private unittest
+//    {
 //        auto foo = new Smthng();
 //        auto guts = *(cast(int**)&foo);
 //        auto len = __traits(classInstanceSize, Smthng) / size_t.sizeof; 
@@ -723,8 +730,9 @@ version (DMocksTest) {
 //        } 
 //    }
 
-    unittest {
-        mixin(test!("mock interface"));
+    // Mock interface
+    private unittest
+    {
         auto r = new Mocker;
         IFace o = r.mock!(IFace);
         debugLog("about to call once...");
@@ -735,9 +743,9 @@ version (DMocksTest) {
         r.verify;
     }
     
-    unittest {
-        mixin(test!("cast mock to interface"));
-
+    // Cast mock to interface
+    private unittest
+    {
         auto r = new Mocker;
         IFace o = r.mock!(Smthng);
         debugLog("about to call once...");
@@ -748,9 +756,9 @@ version (DMocksTest) {
         r.verify;
     }
 
-    unittest {
-        mixin(test!("cast mock to interface"));
-
+    // Cast mock to interface
+    private unittest
+    {
         auto r = new Mocker;
         IFace o = r.mock!(Smthng);
         debugLog("about to call once...");
@@ -767,10 +775,9 @@ version (DMocksTest) {
         void set (IM im);
     }
     
-    unittest
+    // Return user-defined type
+    private unittest
     {
-        mixin(test!("return user-defined type"));
-
         auto r = new Mocker;
         auto o = r.mock!(IRM);
         auto im = r.mock!(IM);
@@ -789,10 +796,9 @@ version (DMocksTest) {
         int member;
     }
     
-    unittest
+    // Return user-defined type
+    private unittest
     {
-        mixin(test!("return user-defined type"));
-
         auto r = new Mocker;
         auto o = r.mock!(HasMember);    	
     }
@@ -803,10 +809,9 @@ version (DMocksTest) {
         void foo(int i) {}
     }
     
-    unittest
+    // Overloaded method
+    private unittest
     {
-        mixin(test!("overloaded method"));
-
         auto r = new Mocker;
         auto o = r.mock!(Overloads);  
         o.foo();
@@ -844,10 +849,9 @@ version (DMocksTest) {
         }
     }
 
-    unittest
+    // Overloaded method qualifiers
+    private unittest
     {
-        mixin(test!("overloaded method qualifiers"));
-
         {
             auto r = new Mocker;
             auto s = r.mock!(shared(Qualifiers));
@@ -911,9 +915,10 @@ version (DMocksTest) {
         int makeVir();
     }
 
-    unittest {
+    // Final mock of virtual methods
+    private unittest
+    {
         import std.exception;
-        mixin(test!("final mock of virtual methods"));
 
         auto r = new Mocker;
         auto o = r.mockFinal!(VirtualFinal);  
@@ -937,9 +942,9 @@ version (DMocksTest) {
         }
     }
 
-    unittest {
-        mixin(test!("final mock of abstract methods"));
-
+    // Final mock of abstract methods
+    private unittest
+    {
         auto r = new Mocker;
         auto o = r.mockFinal!(MakeAbstract)(6);
         r.expect(o.concrete()).passThrough;
@@ -963,9 +968,9 @@ version (DMocksTest) {
         }
     }
 
-    unittest {
-        mixin(test!("final methods"));
-
+    // Final methods
+    private unittest
+    {
         auto r = new Mocker;
         auto o = r.mockFinal!(FinalMethods);  
         r.expect(o.make()).passThrough;
@@ -985,9 +990,9 @@ version (DMocksTest) {
         }
     }
 
-    unittest {
-        mixin(test!("final class"));
-
+    // Final class
+    private unittest
+    {
         auto r = new Mocker;
         auto o = r.mockFinal!(FinalClass);  
         r.expect(o.fortyTwo()).passThrough;
@@ -996,9 +1001,9 @@ version (DMocksTest) {
         r.verify;
     }
 
-    unittest {
-        mixin(test!("final class with no underlying object"));
-
+    // Final class with no underlying object
+    private unittest
+    {
         auto r = new Mocker;
         auto o = r.mockFinalPassTo!(FinalClass)(null);  
         r.expect(o.fortyTwo()).returns(43);
@@ -1021,9 +1026,9 @@ version (DMocksTest) {
         }
     }
 
-    unittest {
-        mixin(test!("template methods"));
-
+    // Template methods
+    private unittest
+    {
         auto r = new Mocker;
         auto o = r.mockFinal!(TemplateMethods);  
         r.expect(o.get(1)).passThrough;
@@ -1042,9 +1047,9 @@ version (DMocksTest) {
         }
     }
 
-    unittest {
-        mixin(test!("struct"));
-
+    // Struct
+    private unittest
+    {
         auto r = new Mocker;
         auto o = r.mockStruct!(Struct);  
         r.expect(o.get).passThrough;
@@ -1061,9 +1066,9 @@ version (DMocksTest) {
         }
     }
 
-    unittest {
-        mixin(test!("struct with fields"));
-
+    // Struct with fields
+    private unittest
+    {
         auto r = new Mocker;
         auto o = r.mockStruct!(StructWithFields)(5);  
         r.expect(o.get).passThrough;
@@ -1084,9 +1089,9 @@ version (DMocksTest) {
         }
     }
 
-    unittest {
-        mixin(test!("struct with fields"));
-
+    // Struct with fields
+    private unittest
+    {
         auto r = new Mocker;
         auto o = r.mockStruct!(StructWithConstructor)(5);  
         r.expect(o.get).passThrough;
@@ -1095,9 +1100,9 @@ version (DMocksTest) {
         r.verify;
     }
 
-    unittest {
-        mixin(test!("struct with no underlying object"));
-
+    // Struct with no underlying object
+    private unittest
+    {
         auto r = new Mocker;
         auto o = r.mockStructPassTo(StructWithConstructor.init);  
         r.expect(o.get).returns(6);
@@ -1113,9 +1118,9 @@ version (DMocksTest) {
         public int foo() { return arr[index++]; }
     }
 
-    unittest
+    // Returning different values on the same expectation
+    private unittest
     {
-        mixin(test!("returning different values on the same expectation"));
         auto mocker = new Mocker;
         auto dependency = mocker.mock!Dependency;
 
@@ -1133,10 +1138,11 @@ version (DMocksTest) {
         public void foo(float a) {  }
     }
 
-    unittest
+    // CustomArgsComparator
+    private unittest
     {
         import std.math;
-        mixin(test!("customArgsComparator"));
+
         auto mocker = new Mocker;
         auto dependency = mocker.mock!TakesFloat;
         mocker.expect(dependency.foo(1.0f)).customArgsComparator(
@@ -1185,7 +1191,7 @@ version (DMocksTest) {
         }
     }
 
-    unittest
+    private unittest
     {
         auto mocker = new Mocker;
         auto dependency = mocker.mockFinal!Property;
@@ -1214,6 +1220,7 @@ version (DMocksTest) {
         }
     }
 
+    /*TODO - typesafe variadic methods do not work yet
     class Varargs
     {
         import core.vararg;
@@ -1232,7 +1239,6 @@ version (DMocksTest) {
             return first + second;
         }
 
-        /*TODO - typesafe variadic methods do not work yet
         int varArray(int first, int[] next...)
         {
             return first + next[0];
@@ -1241,12 +1247,11 @@ version (DMocksTest) {
         int varClass(int first, Foo f...)
         {
             return first + f.x;
-        }*/
+        }
     }
 
-    unittest 
+    private unittest 
     {
-        
         import core.vararg;
 
         auto mocker = new Mocker;
@@ -1257,12 +1262,5 @@ version (DMocksTest) {
         mocker.replay;
 
         assert(dependency.varDyn(42, 5) == 47);
-    }
-
-    version (DMocksTestStandalone)
-    {
-        void main () {
-            writefln("All tests pass.");
-        }
-    }
+    }*/
 }
