@@ -5,6 +5,7 @@ public import dmocks.dynamic;
 import dmocks.factory;
 import dmocks.repository; 
 import dmocks.util;
+import std.exception;
 import std.stdio;
 import std.typecons;
 
@@ -693,10 +694,8 @@ unittest
     Mocker m = new Mocker();
     Object o = m.mock!(Object);
     m.replay();
-    try {
-        o.toString;
-        assert (false, "expected exception not thrown");
-    } catch (ExpectationViolationException) {}
+    assertThrown!ExpectationViolationException(o.toString,
+                                               "Expected exception not thrown");
 }
 
 @("expect")
@@ -706,9 +705,7 @@ unittest
     Object o = m.mock!(Object);
     m.expect(o.toString).repeat(0).returns("mrow?");
     m.replay();
-    try {
-        o.toString;
-    } catch (Exception e) {}
+    assertThrown(o.toString);
 }
 
 @("repeat single")
@@ -722,10 +719,8 @@ unittest
 
     o.toString;
     o.toString;
-    try {
-        o.toString;
-        assert (false, "expected exception not thrown");
-    } catch (ExpectationViolationException) {}
+    assertThrown!ExpectationViolationException(o.toString,
+                                               "Expected exception not thrown");
 }
 
 @("repository match counts")
@@ -736,10 +731,8 @@ unittest
     o.toString;
     r.lastCall().repeat(2, 2).returns("mew.");
     r.replay();
-    try {
-        r.verify();
-        assert (false, "expected exception not thrown");
-    } catch (ExpectationViolationException) {}
+    assertThrown!ExpectationViolationException(r.verify(),
+                                               "Expected exception not thrown");
 }
 
 @("delegate payload")
@@ -876,12 +869,8 @@ unittest
     o.toHash; // unexpected tohash calls
     o.toString;
     o.toHash;
-    try {
-        r.verify(false, true);
-        assert (false, "expected a mocks setup exception");
-    } catch (ExpectationViolationException e) {
-    }
-
+    assertThrown!ExpectationViolationException(r.verify(false, true),
+                                               "Expected a mocks setup exception");
     r.verify(true, false);
 }
 
