@@ -53,43 +53,42 @@ string formatQualifiers(alias T)()
 }
 
 ///
-version (DMocksTest) {
-    unittest {
-        class A
+unittest
+{
+    class A
+    {
+        int a;
+        int make() const shared @property
         {
-            int a;
-            int make() const shared @property
-            {
-                return a;
-            }
-
-            int makePure() inout pure @safe
-            {
-                return a;
-            }
-
-            int makeImut() immutable nothrow @trusted
-            {
-                return a;
-            }
-
-            ref int makeRef()
-            {
-                return a;
-            }
+            return a;
         }
-        auto aimut = new immutable(A);
-        auto aconst = new const shared(A);
-        auto amut = new A;
-//        assert(qualifiers!(aimut.makeImut)().sort().array() == [Qual!"immutable", Qual!"nothrow", Qual!"@trusted"].sort);
-//        assert(qualifiers!(aconst.makePure)().sort().array() == [Qual!"@safe", Qual!"inout", Qual!"pure"].sort);
-//        assert(qualifiers!(aconst.make)().sort().array() == [Qual!"@property", Qual!"@system", Qual!"const", Qual!"shared"].sort);
-        assert(qualifiers!(amut.makeRef)().sort().array() == [Qual!"@system", Qual!"ref"]);
-//        assert(qualifierMatch!(aconst.make).matches([Qual!"@property", Qual!"@system", Qual!"const", Qual!"shared"].sort));
-//        assert(!qualifierMatch!(aconst.make).matches([Qual!"@property", Qual!"@system", Qual!"shared"].sort));
-//        assert(!qualifierMatch!(aconst.make).matches([Qual!"@property", Qual!"ref", Qual!"@system", Qual!"shared"].sort));
-//        assert(!qualifierMatch!(aconst.make).matches(["property", Qual!"@system", Qual!"shared"].sort));
+
+        int makePure() inout pure @safe
+        {
+            return a;
+        }
+
+        int makeImut() immutable nothrow @trusted
+        {
+            return a;
+        }
+
+        ref int makeRef()
+        {
+            return a;
+        }
     }
+    auto aimut = new immutable(A);
+    auto aconst = new const shared(A);
+    auto amut = new A;
+//  assert(qualifiers!(aimut.makeImut)().sort().array() == [Qual!"immutable", Qual!"nothrow", Qual!"@trusted"].sort);
+//  assert(qualifiers!(aconst.makePure)().sort().array() == [Qual!"@safe", Qual!"inout", Qual!"pure"].sort);
+//  assert(qualifiers!(aconst.make)().sort().array() == [Qual!"@property", Qual!"@system", Qual!"const", Qual!"shared"].sort);
+    assert(qualifiers!(amut.makeRef)().sort().array() == [Qual!"@system", Qual!"ref"]);
+//  assert(qualifierMatch!(aconst.make).matches([Qual!"@property", Qual!"@system", Qual!"const", Qual!"shared"].sort));
+//  assert(!qualifierMatch!(aconst.make).matches([Qual!"@property", Qual!"@system", Qual!"shared"].sort));
+//  assert(!qualifierMatch!(aconst.make).matches([Qual!"@property", Qual!"ref", Qual!"@system", Qual!"shared"].sort));
+//  assert(!qualifierMatch!(aconst.make).matches(["property", Qual!"@system", Qual!"shared"].sort));
 }
 
 private string[] getFunctionAttributes(alias T)()
@@ -174,14 +173,13 @@ template Qual(string val)
 }
 
 ///
-version (DMocksTest) {
-    unittest {
-        static assert(__traits(compiles, Qual!"const"));
-        static assert(!__traits(compiles, Qual!"consta"));
-        enforceQualifierNames([Qual!"const", Qual!"@property"]);
-        assertThrown!(MocksSetupException)(enforceQualifierNames([Qual!"const", Qual!"const", Qual!"@property"]));
-        assertThrown!(MocksSetupException)(enforceQualifierNames(["consta", Qual!"@property"]));
-    }
+unittest
+{
+    static assert(__traits(compiles, Qual!"const"));
+    static assert(!__traits(compiles, Qual!"consta"));
+    enforceQualifierNames([Qual!"const", Qual!"@property"]);
+    assertThrown!(MocksSetupException)(enforceQualifierNames([Qual!"const", Qual!"const", Qual!"@property"]));
+    assertThrown!(MocksSetupException)(enforceQualifierNames(["consta", Qual!"@property"]));
 }
 
 /// check if qualifier match is correctly formulated

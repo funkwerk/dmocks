@@ -166,9 +166,4 @@ DMocks uses dub (github.com/rejectedsoftware/dub) as a build system. Dub was cho
 
 ###Available dub build configurations:
 - library - produces dmocks-revived.lib file which can be included in your project, see examples/with-lib in the repository to see how this can be used
-- tests - produces standalone executable useful for debugging the library itself
-
-###Available version switches:
-- DMocksTest - compile unit tests into the library (works only when unittest build enabled)
-- DMocksTestStandalone - produce main function to run tests, so standalone executable can be generated
-- DMocksDebug - add various debug messages, mostly internal dmocks stuff
+- unittest - produces standalone executable useful for debugging the library itself

@@ -44,14 +44,14 @@ struct Interval
     }
 }
 
-version (DMocksTest) {
-    unittest {
-        Interval t = Interval(1, 2);
-        assert (to!string(t) == "1..2");
-    }
+unittest
+{
+    Interval t = Interval(1, 2);
+    assert (to!string(t) == "1..2");
+}
 
-    unittest {
-        Interval t = Interval(1, 1);
-        assert (to!string(t) == "1");
-    }
+unittest
+{
+    Interval t = Interval(1, 1);
+    assert (to!string(t) == "1");
 }

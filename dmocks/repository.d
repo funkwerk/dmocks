@@ -173,8 +173,8 @@ class MockRepository
         return apndr.data;
     }
 
-    // Repository record/replay
-    private unittest
+    @("repository record/replay")
+    unittest
     {
         MockRepository r = new MockRepository();
         assert (r.Recording());
@@ -185,8 +185,8 @@ class MockRepository
     }
 
     
-    // Test for correctly formulated template
-    private unittest
+    @("test for correctly formulated template")
+    unittest
     {
         class A
         {

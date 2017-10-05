@@ -1,7 +1,7 @@
 {
     "name": "dmocks-revived",
     "description": "A mocking framework for the D programming language",
-    "homepage": "http://github.com/QAston/DMocks-revived",
+    "homepage": "https://github.com/funkwerk/DMocks-revived",
     "authors": [
         "QAston"
     ],
@@ -21,10 +21,7 @@
             "name": "unittest",
             "targetType": "executable",
             "sourcePaths": ["test"],
-            "mainSourceFile": "test/main.d",
-			"versions": [
-                "DMocksTest"
-			]
+            "mainSourceFile": "test/main.d"
         }
     ]
 }

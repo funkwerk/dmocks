@@ -60,21 +60,20 @@ class NameMatchRegex : NameMatch
     }
 }
 
-unittest {
+unittest
+{
     {
         NameMatch a = new NameMatchText("asd");
         assert(a.matches("asd"));
         assert(!a.matches("qwe"));
         assert(!a.matches("asdasd"));
     }
-
     {
         NameMatch a = new NameMatchRegex("asd");
         assert(a.matches("asdasd"));
         assert(a.matches("asd"));
         assert(!a.matches("a"));
     }
-
     {
         NameMatch a = new NameMatchRegex("a..");
         assert(a.matches("asd"));

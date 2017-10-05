@@ -181,8 +181,8 @@ private
     }
 }
 
-// Action returnValue
-private unittest
+@("action returnValue")
+unittest
 {
     Dynamic v = dynamic(5);
     Action act = new Action(typeid(int));
@@ -191,8 +191,8 @@ private unittest
     assert (act.returnValue() == dynamic(5));
 }
 
-// Action action
-private unittest
+@("action action")
+unittest
 {
     Dynamic v = dynamic(5);
     Action act = new Action(typeid(int));
@@ -201,8 +201,8 @@ private unittest
     assert (act.action() == v);
 }
 
-// Action exception
-private unittest
+@("action exception")
+unittest
 {
     Exception ex = new Exception("boogah");
     Action act = new Action(typeid(int));
@@ -211,8 +211,8 @@ private unittest
     assert (act.toThrow is ex);
 }
 
-// Action passthrough
-private unittest 
+@("action passthrough")
+unittest
 {
     Action act = new Action(typeid(int));
     act.passThrough = true;
@@ -221,8 +221,8 @@ private unittest
     assert (!act.passThrough());
 }
 
-// Action hasAction
-private unittest
+@("action hasAction")
+unittest
 {
     Action act = new Action(typeid(int));
     act.returnValue(dynamic(5));

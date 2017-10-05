@@ -387,15 +387,22 @@ public class ExpectationSetup
 /// backward compatibility alias
 alias ExpectationSetup ExternalCall;
 
-version (DMocksTest)
+version (unittest)
 {
-    class Templated(T) {}
-    interface IM {
-        void bar ();
+    class Templated(T)
+    {
+    }
+    interface IM
+    {
+        void bar();
     }
 
-    class ConstructorArg {
-        this (int i) { a = i;}
+    class ConstructorArg
+    {
+        this(int i)
+        {
+            a = i;
+        }
         int a;
         int getA()
         {
@@ -403,7 +410,8 @@ version (DMocksTest)
         }
     }
 
-    class SimpleObject {
+    class SimpleObject
+    {
         this()
         {
         }
@@ -413,416 +421,48 @@ version (DMocksTest)
         }
     }
 
-    // Nontemplated mock
-    private unittest
-    {
-        (new Mocker()).mock!(Object);
-    }
-
-    // Templated mock
-    private unittest
-    {
-        (new Mocker()).mock!(Templated!(int));
-    }
-
-    // Templated mock
-    private unittest
-    {
-        (new Mocker()).mock!(IM);
-    }
-
-    // Execute mock method
-    private unittest
-    {
-        auto r = new Mocker();
-        auto o = r.mock!(Object);
-        o.toString();
-    }
-
-    // Constructor argument
-    private unittest
-    {
-        auto r = new Mocker();
-        auto o = r.mock!(ConstructorArg)(4);
-    }
-
-    // LastCall
-    private unittest
-    {
-        Mocker m = new Mocker();
-        SimpleObject o = m.mock!(SimpleObject);
-        o.print;
-        auto e = m.lastCall;
-
-        assert (e !is null);
-    }
-
-    // Return a value
-    private unittest
-    {
-        Mocker m = new Mocker();
-        Object o = m.mock!(Object);
-        o.toString;
-        auto e = m.lastCall;
-
-        assert (e !is null);
-        e.returns("frobnitz");
-    }
-
-    // Unexpected call
-    private unittest
-    {
-        Mocker m = new Mocker();
-        Object o = m.mock!(Object);
-        m.replay();
-        try {
-            o.toString;
-            assert (false, "expected exception not thrown");
-        } catch (ExpectationViolationException) {}
-    }
-
-    // Expect
-    private unittest
-    {
-        Mocker m = new Mocker();
-        Object o = m.mock!(Object);
-        m.expect(o.toString).repeat(0).returns("mrow?");
-        m.replay();
-        try {
-            o.toString;
-        } catch (Exception e) {}
-    }
-
-    // Repeat single
-    private unittest
-    {
-        Mocker m = new Mocker();
-        Object o = m.mock!(Object);
-        m.expect(o.toString).repeat(2).returns("foom?");
-
-        m.replay();
-
-        o.toString;
-        o.toString;
-        try {
-            o.toString;
-            assert (false, "expected exception not thrown");
-        } catch (ExpectationViolationException) {}
-    }
-
-    // Repository match counts
-    private unittest
-    {
-        auto r = new Mocker();
-        auto o = r.mock!(Object);
-        o.toString;
-        r.lastCall().repeat(2, 2).returns("mew.");
-        r.replay();
-        try {
-            r.verify();
-            assert (false, "expected exception not thrown");
-        } catch (ExpectationViolationException) {}
-    }
-
-    // Delegate payload
-    private unittest
-    {
-        bool calledPayload = false;
-        Mocker r = new Mocker();
-        auto o = r.mock!(SimpleObject);
-
-        //o.print;
-        r.expect(o.print).action({ calledPayload = true; });
-        r.replay();
-
-        o.print;
-        assert (calledPayload);
-    }
-
-    // Exception payload
-    private unittest
-    {
-        Mocker r = new Mocker();
-        auto o = r.mock!(SimpleObject);
-
-        string msg = "divide by cucumber error";
-        o.print;
-        r.lastCall().throws(new Exception(msg));
-        r.replay();
-
-        try {
-            o.print;
-            assert (false, "expected exception not thrown");
-        } catch (Exception e) {
-            // Careful -- assertion errors derive from Exception
-            assert (e.msg == msg, e.msg);
-        }
-    }
-
-    class HasPrivateMethods {
-        protected void method () {}
-    }
-
-    // Passthrough
-    private unittest
-    {
-        Mocker r = new Mocker();
-        auto o = r.mock!(Object);
-        o.toString;
-        r.lastCall().passThrough();
-
-        r.replay();
-        string str = o.toString;
-        assert (str == "dmocks.object_mock.Mocked!(Object).Mocked", str);
-    }
-
-    // Class with constructor init check
-    private unittest
-    {
-        auto r = new Mocker();
-        auto o = r.mock!(ConstructorArg)(4);
-        o.getA();
-        r.lastCall().passThrough();
-        r.replay();
-        assert (4 == o.getA());
-    }
-
-    // Associative arrays
-    private unittest
-    {
-        Mocker r = new Mocker();
-        auto o = r.mock!(Object);
-        r.expect(o.toHash()).passThrough().repeatAny;
-        r.expect(o.opEquals(null)).ignoreArgs().passThrough().repeatAny;
-
-        r.replay();
-        int[Object] i;
-        i[o] = 5;
-        int j = i[o];
-    }
-
-    // Ordering in order
-    private unittest
-    {
-        Mocker r = new Mocker();
-        auto o = r.mock!(Object);
-        r.ordered;
-        r.expect(o.toHash).returns(cast(hash_t)5);
-        r.expect(o.toString).returns("mow!");
-
-        r.replay();
-        o.toHash;
-        o.toString;
-        r.verify;
-    }
-
-    // Ordering not in order
-    private unittest
-    {
-        Mocker r = new Mocker();
-        auto o = r.mock!(Object);
-        r.ordered;
-        r.expect(o.toHash).returns(5);
-        r.expect(o.toString).returns("mow!");
-
-        r.replay();
-        try {
-            o.toString;
-            o.toHash;
-            assert (false);
-        } catch (ExpectationViolationException) {}
-    }
-
-    // Ordering interposed
-    private unittest
-    {
-        Mocker r = new Mocker();
-        auto o = r.mock!(SimpleObject);
-        r.ordered;
-        r.expect(o.toHash).returns(cast(hash_t)5);
-        r.expect(o.toString).returns("mow!");
-        r.unordered;
-        o.print;
-
-        r.replay();
-        o.toHash;
-        o.print;
-        o.toString;
-    }
-
-    // Allow unexpected
-    private unittest
-    {
-        Mocker r = new Mocker();
-        auto o = r.mock!(Object);
-        r.ordered;
-        r.allowUnexpectedCalls(true);
-        r.expect(o.toString).returns("mow!");
-        r.replay();
-        o.toHash; // unexpected tohash calls
-        o.toString;
-        o.toHash;
-        try {
-            r.verify(false, true);
-            assert (false, "expected a mocks setup exception");
-        } catch (ExpectationViolationException e) {
-        }
-
-        r.verify(true, false);
-    }
-
-    // Allowing
-    private unittest
-    {
-        Mocker r = new Mocker();
-        auto o = r.mock!(Object);
-        r.allowing(o.toString).returns("foom?");
-
-        r.replay();
-        o.toString;
-        o.toString;
-        o.toString;
-        r.verify;
-    }
-
-    // Nothing for method to do
-    private unittest
-    {
-        try {
-            Mocker r = new Mocker();
-            auto o = r.mock!(Object);
-            r.allowing(o.toString);
-
-            r.replay();
-            assert (false, "expected a mocks setup exception");
-        } catch (MocksSetupException e) {
-        }
-    }
-
-    // Allow defaults test
-    private unittest
-    {
-        Mocker r = new Mocker();
-        auto o = r.mock!(Object);
-        r.allowDefaults;
-        r.allowing(o.toString);
-
-        r.replay();
-        assert (o.toString == (char[]).init);
-    }
-
-    interface IFace {
-        void foo (string s);
-    }
-
-    class Smthng : IFace {
-        void foo (string s) { }
-    }
-      // Going through the guts of Smthng
-//    private unittest
-//    {
-//        auto foo = new Smthng();
-//        auto guts = *(cast(int**)&foo);
-//        auto len = __traits(classInstanceSize, Smthng) / size_t.sizeof; 
-//        auto end = guts + len;
-//        for (; guts < end; guts++) {
-//            writefln("\t%x", *guts);
-//        } 
-//    }
-
-    // Mock interface
-    private unittest
-    {
-        auto r = new Mocker;
-        IFace o = r.mock!(IFace);
-        debugLog("about to call once...");
-        o.foo("hallo");
-        r.replay;
-        debugLog("about to call twice...");
-        o.foo("hallo");
-        r.verify;
-    }
-    
-    // Cast mock to interface
-    private unittest
-    {
-        auto r = new Mocker;
-        IFace o = r.mock!(Smthng);
-        debugLog("about to call once...");
-        o.foo("hallo");
-        r.replay;
-        debugLog("about to call twice...");
-        o.foo("hallo");
-        r.verify;
-    }
-
-    // Cast mock to interface
-    private unittest
-    {
-        auto r = new Mocker;
-        IFace o = r.mock!(Smthng);
-        debugLog("about to call once...");
-        o.foo("hallo");
-        r.replay;
-        debugLog("about to call twice...");
-        o.foo("hallo");
-        r.verify;
-    }
-    
     interface IRM 
     {
         IM get();
-        void set (IM im);
+        void set(IM im);
     }
-    
-    // Return user-defined type
-    private unittest
+
+    class HasPrivateMethods
     {
-        auto r = new Mocker;
-        auto o = r.mock!(IRM);
-        auto im = r.mock!(IM);
-        debugLog("about to call once...");
-        r.expect(o.get).returns(im);
-        o.set(im);
-        r.replay;
-        debugLog("about to call twice...");
-        assert (o.get is im, "returned the wrong value");
-        o.set(im);
-        r.verify;
+        protected void method()
+        {
+        }
     }
-    
+
+    interface IFace
+    {
+        void foo(string s);
+    }
+
+    class Smthng : IFace
+    {
+        void foo(string s)
+        {
+        }
+    }
+
     class HasMember
     {
         int member;
     }
-    
-    // Return user-defined type
-    private unittest
-    {
-        auto r = new Mocker;
-        auto o = r.mock!(HasMember);    	
-    }
 
     class Overloads
     {
-        void foo() {}
-        void foo(int i) {}
-    }
-    
-    // Overloaded method
-    private unittest
-    {
-        auto r = new Mocker;
-        auto o = r.mock!(Overloads);  
-        o.foo();
-        o.foo(1);
-        r.replay;
-        o.foo(1);
-        o.foo;
-        r.verify;
+        void foo()
+        {
+        }
+        void foo(int i)
+        {
+        }
     }
 
-    class Qualifiers {
+    class Qualifiers
+    {
         int make() shared
         {
             return 0;
@@ -849,82 +489,9 @@ version (DMocksTest)
         }
     }
 
-    // Overloaded method qualifiers
-    private unittest
-    {
-        {
-            auto r = new Mocker;
-            auto s = r.mock!(shared(Qualifiers));
-            auto sc = cast(shared const) s;
-
-            r.expect(s.make).passThrough;
-            r.expect(sc.make).passThrough; 
-            r.replay;
-
-            assert(s.make == 0);
-            assert(sc.make == 2);
-
-            r.verify;
-        }
-
-        {
-            auto r = new Mocker;
-            auto m = r.mock!(Qualifiers);
-            auto c = cast(const) m;
-            auto i = cast(immutable) m;
-
-            r.expect(i.make).passThrough;
-            r.expect(m.make).passThrough; 
-            r.expect(c.make).passThrough; 
-            r.replay;
-
-            assert(i.make == 4);
-            assert(m.make == 3);
-            assert(c.make == 1);
-
-            r.verify;
-        }
-
-        {
-            auto r = new Mocker;
-            auto m = r.mock!(Qualifiers);
-            auto c = cast(const) m;
-            auto i = cast(immutable) m;
-
-            r.expect(i.make).passThrough;
-            r.expect(m.make).passThrough; 
-            r.expect(m.make).passThrough; 
-            r.replay;
-
-            assert(i.make == 4);
-            assert(m.make == 3);
-            try
-            {
-                assert(c.make == 1);
-                assert(false, "exception not thrown");
-            }
-            catch (ExpectationViolationException e) {
-            }
-
-        }
-    }
-
-
     interface VirtualFinal
     {
         int makeVir();
-    }
-
-    // Final mock of virtual methods
-    private unittest
-    {
-        import std.exception;
-
-        auto r = new Mocker;
-        auto o = r.mockFinal!(VirtualFinal);  
-        r.expect(o.makeVir()).returns(5);
-        r.replay;
-        assert(o.makeVir == 5);
     }
 
     class MakeAbstract
@@ -942,18 +509,8 @@ version (DMocksTest)
         }
     }
 
-    // Final mock of abstract methods
-    private unittest
+    class FinalMethods : VirtualFinal
     {
-        auto r = new Mocker;
-        auto o = r.mockFinal!(MakeAbstract)(6);
-        r.expect(o.concrete()).passThrough;
-        r.replay;
-        assert(o.concrete == 6);
-        r.verify;
-    }
-
-    class FinalMethods : VirtualFinal {
         final int make()
         {
             return 0;
@@ -968,48 +525,12 @@ version (DMocksTest)
         }
     }
 
-    // Final methods
-    private unittest
-    {
-        auto r = new Mocker;
-        auto o = r.mockFinal!(FinalMethods);  
-        r.expect(o.make()).passThrough;
-        r.expect(o.make(1)).passThrough; 
-        r.replay;
-        static assert(!is(typeof(o)==FinalMethods));
-        assert(o.make == 0);
-        assert(o.make(1) == 2);
-        r.verify;
-    }
-
     final class FinalClass
     {
         int fortyTwo()
         {
             return 42;
         }
-    }
-
-    // Final class
-    private unittest
-    {
-        auto r = new Mocker;
-        auto o = r.mockFinal!(FinalClass);  
-        r.expect(o.fortyTwo()).passThrough;
-        r.replay;
-        assert(o.fortyTwo == 42);
-        r.verify;
-    }
-
-    // Final class with no underlying object
-    private unittest
-    {
-        auto r = new Mocker;
-        auto o = r.mockFinalPassTo!(FinalClass)(null);  
-        r.expect(o.fortyTwo()).returns(43);
-        r.replay;
-        assert(o.fortyTwo == 43);
-        r.verify;
     }
 
     class TemplateMethods
@@ -1026,39 +547,16 @@ version (DMocksTest)
         }
     }
 
-    // Template methods
-    private unittest
+    struct Struct
     {
-        auto r = new Mocker;
-        auto o = r.mockFinal!(TemplateMethods);  
-        r.expect(o.get(1)).passThrough;
-        r.expect(o.getSomethings(1, 2, 3)).passThrough;
-        r.replay;
-        assert(o.get(1) == "int");
-        auto tm = new TemplateMethods();
-        assert(o.getSomethings(1, 2, 3) == 3);
-        r.verify;
-    }
-
-    struct Struct {
         int get()
         {
             return 1;
         }
     }
 
-    // Struct
-    private unittest
+    struct StructWithFields
     {
-        auto r = new Mocker;
-        auto o = r.mockStruct!(Struct);  
-        r.expect(o.get).passThrough;
-        r.replay;
-        assert(o.get() == 1);
-        r.verify;
-    }
-
-    struct StructWithFields {
         int field;
         int get()
         {
@@ -1066,18 +564,9 @@ version (DMocksTest)
         }
     }
 
-    // Struct with fields
-    private unittest
-    {
-        auto r = new Mocker;
-        auto o = r.mockStruct!(StructWithFields)(5);  
-        r.expect(o.get).passThrough;
-        r.replay;
-        assert(o.get() == 5);
-        r.verify;
-    }
 
-    struct StructWithConstructor {
+    struct StructWithConstructor
+    {
         int field;
         this(int i)
         {
@@ -1089,74 +578,21 @@ version (DMocksTest)
         }
     }
 
-    // Struct with fields
-    private unittest
-    {
-        auto r = new Mocker;
-        auto o = r.mockStruct!(StructWithConstructor)(5);  
-        r.expect(o.get).passThrough;
-        r.replay;
-        assert(o.get() == 5);
-        r.verify;
-    }
-
-    // Struct with no underlying object
-    private unittest
-    {
-        auto r = new Mocker;
-        auto o = r.mockStructPassTo(StructWithConstructor.init);  
-        r.expect(o.get).returns(6);
-        r.replay;
-        assert(o.get() == 6);
-        r.verify;
-    }
-
     class Dependency
     {
         private int[] arr = [1, 2];
         private int index = 0;
-        public int foo() { return arr[index++]; }
-    }
-
-    // Returning different values on the same expectation
-    private unittest
-    {
-        auto mocker = new Mocker;
-        auto dependency = mocker.mock!Dependency;
-
-        //mocker.ordered;
-        mocker.expect(dependency.foo).returns(1);
-        mocker.expect(dependency.foo).returns(2);
-        mocker.replay;
-        assert(dependency.foo == 1);
-        assert(dependency.foo == 2);
-        mocker.verify;
+        public int foo()
+        {
+            return arr[index++];
+        }
     }
 
     class TakesFloat
     {
-        public void foo(float a) {  }
-    }
-
-    // CustomArgsComparator
-    private unittest
-    {
-        import std.math;
-
-        auto mocker = new Mocker;
-        auto dependency = mocker.mock!TakesFloat;
-        mocker.expect(dependency.foo(1.0f)).customArgsComparator(
-             (Dynamic a, Dynamic b) 
-             { 
-                 if (a.type == typeid(float))
-                    { return ( abs(a.get!float() - b.get!float()) < 0.1f); } 
-                 return true;
-             }).repeat(2);
-        mocker.replay;
-
-        // custom comparison example - treat similar floats as equals
-        dependency.foo(1.01);
-        dependency.foo(1.02);
+        public void foo(float a)
+        {
+        }
     }
 
     class Property
@@ -1179,7 +615,9 @@ version (DMocksTest)
                 return _foo;
             }
             else
+            {
                 return T.init;
+            }
         }
 
         @property void foot(T)(T i)
@@ -1191,76 +629,669 @@ version (DMocksTest)
         }
     }
 
-    private unittest
-    {
-        auto mocker = new Mocker;
-        auto dependency = mocker.mockFinal!Property;
-        mocker.ordered;
-        mocker.expect(dependency.foo = 2).ignoreArgs.passThrough;
-        mocker.expect(dependency.foo).passThrough;
-        //TODO: these 2 don't work yet
-        //mocker.expect(dependency.foot!int = 5).passThrough;
-        //mocker.expect(dependency.foot!int).passThrough;
-        mocker.replay;
-
-        dependency.foo = 7;
-        assert(dependency.foo ==7);
-        //dependency.foot!int = 3;
-        //assert(dependency.foot!int == 3);
-        mocker.verify;
-    }
-
-    class Foo {
-        int x;
-        string s;
-
-        this(int x, string s) {
-            this.x = x;
-            this.s = s;
-        }
-    }
-
-    /*TODO - typesafe variadic methods do not work yet
-    class Varargs
-    {
-        import core.vararg;
-        
-        int varDyn(int first, ...)
-        {
-            return vvarDyn(first, _arguments, _argptr);
-        }
-
-        // idiom from C - for every dynamic vararg function there has to be vfunction(Args, TypeInfo[] arguments, va_list argptr)
-        // otherwise passThrough is impossible
-        int vvarDyn(int first, TypeInfo[] arguments, va_list argptr)
-        {
-            assert(arguments[0] == typeid(int));
-            int second = va_arg!int(argptr);
-            return first + second;
-        }
-
-        int varArray(int first, int[] next...)
-        {
-            return first + next[0];
-        }
-
-        int varClass(int first, Foo f...)
-        {
-            return first + f.x;
-        }
-    }
-
-    private unittest 
-    {
-        import core.vararg;
-
-        auto mocker = new Mocker;
-        auto dependency = mocker.mock!Varargs;
-        mocker.record;
-        // we only specify non-vararg arguments in setup because typeunsafe varargs can't have meaningful operations on them (like comparision, etc)
-        mocker.expect(dependency.varDyn(42)).passThrough; // passThrough works with typeunsafe vararg functions only when v[funcname](Args, Typeinfo[], va_list) function variant is provided
-        mocker.replay;
-
-        assert(dependency.varDyn(42, 5) == 47);
-    }*/
 }
+
+@("nontemplated mock")
+unittest
+{
+    (new Mocker()).mock!(Object);
+}
+
+@("templated mock")
+unittest
+{
+    (new Mocker()).mock!(Templated!(int));
+}
+
+@("templated mock")
+unittest
+{
+    (new Mocker()).mock!(IM);
+}
+
+@("execute mock method")
+unittest
+{
+    auto r = new Mocker();
+    auto o = r.mock!(Object);
+    o.toString();
+}
+
+@("constructor argument")
+unittest
+{
+    auto r = new Mocker();
+    auto o = r.mock!(ConstructorArg)(4);
+}
+
+@("lastCall")
+unittest
+{
+    Mocker m = new Mocker();
+    SimpleObject o = m.mock!(SimpleObject);
+    o.print;
+    auto e = m.lastCall;
+
+    assert (e !is null);
+}
+
+@("return a value")
+unittest
+{
+    Mocker m = new Mocker();
+    Object o = m.mock!(Object);
+    o.toString;
+    auto e = m.lastCall;
+
+    assert (e !is null);
+    e.returns("frobnitz");
+}
+
+@("unexpected call")
+unittest
+{
+    Mocker m = new Mocker();
+    Object o = m.mock!(Object);
+    m.replay();
+    try {
+        o.toString;
+        assert (false, "expected exception not thrown");
+    } catch (ExpectationViolationException) {}
+}
+
+@("expect")
+unittest
+{
+    Mocker m = new Mocker();
+    Object o = m.mock!(Object);
+    m.expect(o.toString).repeat(0).returns("mrow?");
+    m.replay();
+    try {
+        o.toString;
+    } catch (Exception e) {}
+}
+
+@("repeat single")
+unittest
+{
+    Mocker m = new Mocker();
+    Object o = m.mock!(Object);
+    m.expect(o.toString).repeat(2).returns("foom?");
+
+    m.replay();
+
+    o.toString;
+    o.toString;
+    try {
+        o.toString;
+        assert (false, "expected exception not thrown");
+    } catch (ExpectationViolationException) {}
+}
+
+@("repository match counts")
+unittest
+{
+    auto r = new Mocker();
+    auto o = r.mock!(Object);
+    o.toString;
+    r.lastCall().repeat(2, 2).returns("mew.");
+    r.replay();
+    try {
+        r.verify();
+        assert (false, "expected exception not thrown");
+    } catch (ExpectationViolationException) {}
+}
+
+@("delegate payload")
+unittest
+{
+    bool calledPayload = false;
+    Mocker r = new Mocker();
+    auto o = r.mock!(SimpleObject);
+
+    //o.print;
+    r.expect(o.print).action({ calledPayload = true; });
+    r.replay();
+
+    o.print;
+    assert (calledPayload);
+}
+
+@("exception payload")
+unittest
+{
+    Mocker r = new Mocker();
+    auto o = r.mock!(SimpleObject);
+
+    string msg = "divide by cucumber error";
+    o.print;
+    r.lastCall().throws(new Exception(msg));
+    r.replay();
+
+    try {
+        o.print;
+        assert (false, "expected exception not thrown");
+    } catch (Exception e) {
+        // Careful -- assertion errors derive from Exception
+        assert (e.msg == msg, e.msg);
+    }
+}
+
+@("passthrough")
+unittest
+{
+    Mocker r = new Mocker();
+    auto o = r.mock!(Object);
+    o.toString;
+    r.lastCall().passThrough();
+
+    r.replay();
+    string str = o.toString;
+    assert (str == "dmocks.object_mock.Mocked!(Object).Mocked", str);
+}
+
+@("class with constructor init check")
+unittest
+{
+    auto r = new Mocker();
+    auto o = r.mock!(ConstructorArg)(4);
+    o.getA();
+    r.lastCall().passThrough();
+    r.replay();
+    assert (4 == o.getA());
+}
+
+@("associative arrays")
+unittest
+{
+    Mocker r = new Mocker();
+    auto o = r.mock!(Object);
+    r.expect(o.toHash()).passThrough().repeatAny;
+    r.expect(o.opEquals(null)).ignoreArgs().passThrough().repeatAny;
+
+    r.replay();
+    int[Object] i;
+    i[o] = 5;
+    int j = i[o];
+}
+
+@("ordering in order")
+unittest
+{
+    Mocker r = new Mocker();
+    auto o = r.mock!(Object);
+    r.ordered;
+    r.expect(o.toHash).returns(cast(hash_t)5);
+    r.expect(o.toString).returns("mow!");
+
+    r.replay();
+    o.toHash;
+    o.toString;
+    r.verify;
+}
+
+@("ordering not in order")
+unittest
+{
+    Mocker r = new Mocker();
+    auto o = r.mock!(Object);
+    r.ordered;
+    r.expect(o.toHash).returns(5);
+    r.expect(o.toString).returns("mow!");
+
+    r.replay();
+    try {
+        o.toString;
+        o.toHash;
+        assert (false);
+    } catch (ExpectationViolationException) {}
+}
+
+@("ordering interposed")
+unittest
+{
+    Mocker r = new Mocker();
+    auto o = r.mock!(SimpleObject);
+    r.ordered;
+    r.expect(o.toHash).returns(cast(hash_t)5);
+    r.expect(o.toString).returns("mow!");
+    r.unordered;
+    o.print;
+
+    r.replay();
+    o.toHash;
+    o.print;
+    o.toString;
+}
+
+@("allow unexpected")
+unittest
+{
+    Mocker r = new Mocker();
+    auto o = r.mock!(Object);
+    r.ordered;
+    r.allowUnexpectedCalls(true);
+    r.expect(o.toString).returns("mow!");
+    r.replay();
+    o.toHash; // unexpected tohash calls
+    o.toString;
+    o.toHash;
+    try {
+        r.verify(false, true);
+        assert (false, "expected a mocks setup exception");
+    } catch (ExpectationViolationException e) {
+    }
+
+    r.verify(true, false);
+}
+
+@("allowing")
+unittest
+{
+    Mocker r = new Mocker();
+    auto o = r.mock!(Object);
+    r.allowing(o.toString).returns("foom?");
+
+    r.replay();
+    o.toString;
+    o.toString;
+    o.toString;
+    r.verify;
+}
+
+@("nothing for method to do")
+unittest
+{
+    try {
+        Mocker r = new Mocker();
+        auto o = r.mock!(Object);
+        r.allowing(o.toString);
+
+        r.replay();
+        assert (false, "expected a mocks setup exception");
+    } catch (MocksSetupException e) {
+    }
+}
+
+@("allow defaults test")
+unittest
+{
+    Mocker r = new Mocker();
+    auto o = r.mock!(Object);
+    r.allowDefaults;
+    r.allowing(o.toString);
+
+    r.replay();
+    assert (o.toString == (char[]).init);
+}
+
+// Going through the guts of Smthng
+// unittest
+// {
+//     auto foo = new Smthng();
+//     auto guts = *(cast(int**)&foo);
+//     auto len = __traits(classInstanceSize, Smthng) / size_t.sizeof; 
+//     auto end = guts + len;
+//     for (; guts < end; guts++) {
+//         writefln("\t%x", *guts);
+//     } 
+// }
+
+@("mock interface")
+unittest
+{
+    auto r = new Mocker;
+    IFace o = r.mock!(IFace);
+    debugLog("about to call once...");
+    o.foo("hallo");
+    r.replay;
+    debugLog("about to call twice...");
+    o.foo("hallo");
+    r.verify;
+}
+
+@("cast mock to interface")
+unittest
+{
+    auto r = new Mocker;
+    IFace o = r.mock!(Smthng);
+    debugLog("about to call once...");
+    o.foo("hallo");
+    r.replay;
+    debugLog("about to call twice...");
+    o.foo("hallo");
+    r.verify;
+}
+
+@("cast mock to interface")
+unittest
+{
+    auto r = new Mocker;
+    IFace o = r.mock!(Smthng);
+    debugLog("about to call once...");
+    o.foo("hallo");
+    r.replay;
+    debugLog("about to call twice...");
+    o.foo("hallo");
+    r.verify;
+}
+
+@("return user-defined type")
+unittest
+{
+    auto r = new Mocker;
+    auto o = r.mock!(IRM);
+    auto im = r.mock!(IM);
+    debugLog("about to call once...");
+    r.expect(o.get).returns(im);
+    o.set(im);
+    r.replay;
+    debugLog("about to call twice...");
+    assert (o.get is im, "returned the wrong value");
+    o.set(im);
+    r.verify;
+}
+
+@("return user-defined type")
+unittest
+{
+    auto r = new Mocker;
+    auto o = r.mock!(HasMember);    	
+}
+
+@("overloaded method")
+unittest
+{
+    auto r = new Mocker;
+    auto o = r.mock!(Overloads);  
+    o.foo();
+    o.foo(1);
+    r.replay;
+    o.foo(1);
+    o.foo;
+    r.verify;
+}
+
+@("overloaded method qualifiers")
+unittest
+{
+    {
+        auto r = new Mocker;
+        auto s = r.mock!(shared(Qualifiers));
+        auto sc = cast(shared const) s;
+
+        r.expect(s.make).passThrough;
+        r.expect(sc.make).passThrough; 
+        r.replay;
+
+        assert(s.make == 0);
+        assert(sc.make == 2);
+
+        r.verify;
+    }
+    {
+        auto r = new Mocker;
+        auto m = r.mock!(Qualifiers);
+        auto c = cast(const) m;
+        auto i = cast(immutable) m;
+
+        r.expect(i.make).passThrough;
+        r.expect(m.make).passThrough; 
+        r.expect(c.make).passThrough; 
+        r.replay;
+
+        assert(i.make == 4);
+        assert(m.make == 3);
+        assert(c.make == 1);
+
+        r.verify;
+    }
+    {
+        auto r = new Mocker;
+        auto m = r.mock!(Qualifiers);
+        auto c = cast(const) m;
+        auto i = cast(immutable) m;
+
+        r.expect(i.make).passThrough;
+        r.expect(m.make).passThrough; 
+        r.expect(m.make).passThrough; 
+        r.replay;
+
+        assert(i.make == 4);
+        assert(m.make == 3);
+        try
+        {
+            assert(c.make == 1);
+            assert(false, "exception not thrown");
+        }
+        catch (ExpectationViolationException e)
+        {
+        }
+    }
+}
+
+@("final mock of virtual methods")
+unittest
+{
+    import std.exception;
+
+    auto r = new Mocker;
+    auto o = r.mockFinal!(VirtualFinal);  
+    r.expect(o.makeVir()).returns(5);
+    r.replay;
+    assert(o.makeVir == 5);
+}
+
+@("final mock of abstract methods")
+unittest
+{
+    auto r = new Mocker;
+    auto o = r.mockFinal!(MakeAbstract)(6);
+    r.expect(o.concrete()).passThrough;
+    r.replay;
+    assert(o.concrete == 6);
+    r.verify;
+}
+
+@("final methods")
+unittest
+{
+    auto r = new Mocker;
+    auto o = r.mockFinal!(FinalMethods);  
+    r.expect(o.make()).passThrough;
+    r.expect(o.make(1)).passThrough; 
+    r.replay;
+    static assert(!is(typeof(o)==FinalMethods));
+    assert(o.make == 0);
+    assert(o.make(1) == 2);
+    r.verify;
+}
+
+@("final class")
+unittest
+{
+    auto r = new Mocker;
+    auto o = r.mockFinal!(FinalClass);  
+    r.expect(o.fortyTwo()).passThrough;
+    r.replay;
+    assert(o.fortyTwo == 42);
+    r.verify;
+}
+
+@("final class with no underlying object")
+unittest
+{
+    auto r = new Mocker;
+    auto o = r.mockFinalPassTo!(FinalClass)(null);  
+    r.expect(o.fortyTwo()).returns(43);
+    r.replay;
+    assert(o.fortyTwo == 43);
+    r.verify;
+}
+
+@("template methods")
+unittest
+{
+    auto r = new Mocker;
+    auto o = r.mockFinal!(TemplateMethods);  
+    r.expect(o.get(1)).passThrough;
+    r.expect(o.getSomethings(1, 2, 3)).passThrough;
+    r.replay;
+    assert(o.get(1) == "int");
+    auto tm = new TemplateMethods();
+    assert(o.getSomethings(1, 2, 3) == 3);
+    r.verify;
+}
+
+@("struct")
+unittest
+{
+    auto r = new Mocker;
+    auto o = r.mockStruct!(Struct);  
+    r.expect(o.get).passThrough;
+    r.replay;
+    assert(o.get() == 1);
+    r.verify;
+}
+
+@("struct with fields")
+unittest
+{
+    auto r = new Mocker;
+    auto o = r.mockStruct!(StructWithFields)(5);  
+    r.expect(o.get).passThrough;
+    r.replay;
+    assert(o.get() == 5);
+    r.verify;
+}
+
+@("struct with fields")
+unittest
+{
+    auto r = new Mocker;
+    auto o = r.mockStruct!(StructWithConstructor)(5);  
+    r.expect(o.get).passThrough;
+    r.replay;
+    assert(o.get() == 5);
+    r.verify;
+}
+
+@("struct with no underlying object")
+unittest
+{
+    auto r = new Mocker;
+    auto o = r.mockStructPassTo(StructWithConstructor.init);  
+    r.expect(o.get).returns(6);
+    r.replay;
+    assert(o.get() == 6);
+    r.verify;
+}
+
+@("returning different values on the same expectation")
+unittest
+{
+    auto mocker = new Mocker;
+    auto dependency = mocker.mock!Dependency;
+
+    //mocker.ordered;
+    mocker.expect(dependency.foo).returns(1);
+    mocker.expect(dependency.foo).returns(2);
+    mocker.replay;
+    assert(dependency.foo == 1);
+    assert(dependency.foo == 2);
+    mocker.verify;
+}
+
+@("customArgsComparator")
+unittest
+{
+    import std.math;
+
+    auto mocker = new Mocker;
+    auto dependency = mocker.mock!TakesFloat;
+    mocker.expect(dependency.foo(1.0f)).customArgsComparator(
+         (Dynamic a, Dynamic b) 
+         { 
+             if (a.type == typeid(float))
+                { return ( abs(a.get!float() - b.get!float()) < 0.1f); } 
+             return true;
+         }).repeat(2);
+    mocker.replay;
+
+    // custom comparison example - treat similar floats as equals
+    dependency.foo(1.01);
+    dependency.foo(1.02);
+}
+
+unittest
+{
+    auto mocker = new Mocker;
+    auto dependency = mocker.mockFinal!Property;
+    mocker.ordered;
+    mocker.expect(dependency.foo = 2).ignoreArgs.passThrough;
+    mocker.expect(dependency.foo).passThrough;
+    //TODO: these 2 don't work yet
+    //mocker.expect(dependency.foot!int = 5).passThrough;
+    //mocker.expect(dependency.foot!int).passThrough;
+    mocker.replay;
+
+    dependency.foo = 7;
+    assert(dependency.foo ==7);
+    //dependency.foot!int = 3;
+    //assert(dependency.foot!int == 3);
+    mocker.verify;
+}
+
+/*TODO - typesafe variadic methods do not work yet
+class Foo {
+    int x;
+    string s;
+
+    this(int x, string s) {
+        this.x = x;
+        this.s = s;
+    }
+}
+
+class Varargs
+{
+    import core.vararg;
+    
+    int varDyn(int first, ...)
+    {
+        return vvarDyn(first, _arguments, _argptr);
+    }
+
+    // idiom from C - for every dynamic vararg function there has to be vfunction(Args, TypeInfo[] arguments, va_list argptr)
+    // otherwise passThrough is impossible
+    int vvarDyn(int first, TypeInfo[] arguments, va_list argptr)
+    {
+        assert(arguments[0] == typeid(int));
+        int second = va_arg!int(argptr);
+        return first + second;
+    }
+
+    int varArray(int first, int[] next...)
+    {
+        return first + next[0];
+    }
+
+    int varClass(int first, Foo f...)
+    {
+        return first + f.x;
+    }
+}
+
+unittest 
+{
+    import core.vararg;
+
+    auto mocker = new Mocker;
+    auto dependency = mocker.mock!Varargs;
+    mocker.record;
+    // we only specify non-vararg arguments in setup because typeunsafe varargs can't have meaningful operations on them (like comparision, etc)
+    mocker.expect(dependency.varDyn(42)).passThrough; // passThrough works with typeunsafe vararg functions only when v[funcname](Args, Typeinfo[], va_list) function variant is provided
+    mocker.replay;
+
+    assert(dependency.varDyn(42, 5) == 47);
+}*/

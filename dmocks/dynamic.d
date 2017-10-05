@@ -112,38 +112,14 @@ class DynamicT(T) : Dynamic
     }
 }
 
-version (DMocksTest) {
-
+version (unittest)
+{
     class A
     {
     }
 
     class B : A
     {
-    }
-
-
-    unittest
-    {
-        auto d = dynamic(6);
-        assert(d.toString == "6");
-        assert(d.type.toString == "int");
-        auto e = dynamic(6);
-        assert(e == d);
-        assert(e.get!int == 6);
-    }
-
-    unittest
-    {
-        auto d = dynamic(new B);
-        assert(d.get!A !is null);
-        assert(d.get!B !is null);
-    }
-
-    unittest
-    {
-        auto d = dynamic(null);
-        assert(d.get!A is null);
     }
 
     struct C
@@ -155,26 +131,50 @@ version (DMocksTest) {
         private C _c;
         alias _c this;
     }
+}
 
-    unittest {
-        int[5] a;
-        auto d = dynamic(a);
-        assert(d.get!(int[5]) == [0,0,0,0,0]);
-    }
+unittest
+{
+    auto d = dynamic(6);
+    assert(d.toString == "6");
+    assert(d.type.toString == "int");
+    auto e = dynamic(6);
+    assert(e == d);
+    assert(e.get!int == 6);
+}
 
-    /+ ImplicitConversionTargets doesn't include alias thises
-    unittest
-    {
-        auto d = dynamic(D());
-        d.get!C;
-        d.get!D;
-    }
-    +/
+unittest
+{
+    auto d = dynamic(new B);
+    assert(d.get!A !is null);
+    assert(d.get!B !is null);
+}
 
-    // supports const object with non-const toString
-    unittest
-    {
-        static assert(is(typeof(dynamic(new const Object))));
-        static assert(is(typeof(dynamic(new immutable Object))));
-    }
+unittest
+{
+    auto d = dynamic(null);
+    assert(d.get!A is null);
+}
+
+unittest
+{
+    int[5] a;
+    auto d = dynamic(a);
+    assert(d.get!(int[5]) == [0,0,0,0,0]);
+}
+
+/+ ImplicitConversionTargets doesn't include alias thises
+unittest
+{
+    auto d = dynamic(D());
+    d.get!C;
+    d.get!D;
+}
++/
+
+@("supports const object with non-const toString")
+unittest
+{
+    static assert(is(typeof(dynamic(new const Object))));
+    static assert(is(typeof(dynamic(new immutable Object))));
 }

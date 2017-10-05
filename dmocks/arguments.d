@@ -87,8 +87,8 @@ auto formatArguments(Dynamic[] _arguments)
     return "(" ~ _arguments.map!(a=>a.type.toString ~ " " ~ a.toString()).join(", ") ~")";
 }
 
-// Argument equality
-private unittest
+@("argument equality")
+unittest
 {
     auto a = arguments!(int, real)(5, 9.7);
     auto b = arguments!(int, real)(5, 9.7);
@@ -100,8 +100,8 @@ private unittest
     assert (a != d);
 }
 
-// Argument toString
-private unittest
+@("argument toString")
+unittest
 {
     auto a = arguments!(int, real)(5, 9.7);
     a.formatArguments();
