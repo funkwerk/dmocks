@@ -694,8 +694,7 @@ unittest
     Mocker m = new Mocker();
     Object o = m.mock!(Object);
     m.replay();
-    assertThrown!ExpectationViolationException(o.toString,
-                                               "Expected exception not thrown");
+    assertThrown!ExpectationViolationException(o.toString);
 }
 
 @("expect")
@@ -719,8 +718,7 @@ unittest
 
     o.toString;
     o.toString;
-    assertThrown!ExpectationViolationException(o.toString,
-                                               "Expected exception not thrown");
+    assertThrown!ExpectationViolationException(o.toString);
 }
 
 @("repository match counts")
@@ -731,8 +729,7 @@ unittest
     o.toString;
     r.lastCall().repeat(2, 2).returns("mew.");
     r.replay();
-    assertThrown!ExpectationViolationException(r.verify(),
-                                               "Expected exception not thrown");
+    assertThrown!ExpectationViolationException(r.verify());
 }
 
 @("delegate payload")
@@ -869,8 +866,7 @@ unittest
     o.toHash; // unexpected tohash calls
     o.toString;
     o.toHash;
-    assertThrown!ExpectationViolationException(r.verify(false, true),
-                                               "Expected a mocks setup exception");
+    assertThrown!ExpectationViolationException(r.verify(false, true));
     r.verify(true, false);
 }
 
