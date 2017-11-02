@@ -1,18 +1,15 @@
 module dmocks.expectation;
 
-import std.typecons;
-import std.traits;
-import std.range;
-import std.conv;
-
+import dmocks.action;
+import dmocks.arguments;
+import dmocks.call;
+import dmocks.model;
 import dmocks.name_match;
 import dmocks.qualifiers;
-import dmocks.arguments;
 import dmocks.util;
-import dmocks.action;
-import dmocks.model;
-import dmocks.call;
-
+import std.conv;
+import std.range;
+import std.traits;
 
 package:
 

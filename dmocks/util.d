@@ -1,9 +1,7 @@
 module dmocks.util;
 
-import std.conv;
-import std.utf;
-import std.string;
 public import dmocks.interval;
+import std.conv;
 
 string nullableToString(T)(T obj)
 {

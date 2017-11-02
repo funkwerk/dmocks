@@ -2,9 +2,6 @@ module dmocks.factory;
 
 import dmocks.object_mock;
 import dmocks.repository; 
-import dmocks.util;
-import dmocks.repository;
-import std.stdio;
 import std.typecons;
 
 package:

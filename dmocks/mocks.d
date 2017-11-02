@@ -1,13 +1,10 @@
 module dmocks.mocks;
 
-public import dmocks.object_mock;
 public import dmocks.dynamic;
 import dmocks.factory;
+public import dmocks.object_mock;
 import dmocks.repository; 
 import dmocks.util;
-import std.exception;
-import std.stdio;
-import std.typecons;
 
 /++
     A class through which one creates mock objects and manages expectations about calls to their methods.
@@ -390,6 +387,9 @@ alias ExpectationSetup ExternalCall;
 
 version (unittest)
 {
+    import std.exception;
+    import std.stdio;
+
     class Templated(T)
     {
     }

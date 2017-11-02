@@ -1,7 +1,7 @@
 module dmocks.action;
 
-import dmocks.util;
 import dmocks.dynamic;
+import dmocks.util;
 import std.traits;
 
 package:

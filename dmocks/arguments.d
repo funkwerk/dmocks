@@ -1,12 +1,9 @@
 module dmocks.arguments;
 
-import std.conv;
-import std.algorithm;
-import std.array;
-import std.range;
-
-import dmocks.util;
 import dmocks.dynamic;
+import std.algorithm;
+import std.conv;
+import std.range;
 
 interface ArgumentsMatch
 {

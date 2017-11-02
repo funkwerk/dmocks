@@ -2,7 +2,6 @@ module dmocks.dynamic;
 
 import std.conv;
 import std.traits;
-import std.typecons;
 
 /++
 + This is a very very simple class for storing a variable regardless of it's size and type

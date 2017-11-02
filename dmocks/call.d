@@ -1,11 +1,9 @@
 module dmocks.call;
 
-public import dmocks.model;
-public import dmocks.dynamic;
-
 import dmocks.arguments;
+public import dmocks.dynamic;
+public import dmocks.model;
 import dmocks.qualifiers;
-
 import std.array;
 
 /++

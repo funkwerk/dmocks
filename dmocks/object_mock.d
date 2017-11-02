@@ -1,14 +1,10 @@
 module dmocks.object_mock;
 
-import dmocks.util;
-import dmocks.repository;
+import core.vararg;
 import dmocks.method_mock;
 import dmocks.model;
-import dmocks.qualifiers;
-
-import core.vararg;
+import dmocks.repository;
 import std.traits;
-import std.typecons;
 
 class Mocked (T) : T 
 {
@@ -163,4 +159,3 @@ template Body (T, bool INHERITANCE)
         }
     }
 }
-

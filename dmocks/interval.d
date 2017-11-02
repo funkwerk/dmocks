@@ -1,9 +1,8 @@
 module dmocks.interval;
 
-import std.exception;
-import std.conv;
-
 import dmocks.util;
+import std.conv;
+import std.exception;
 
 package:
 

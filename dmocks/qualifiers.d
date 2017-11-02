@@ -1,12 +1,10 @@
 module dmocks.qualifiers;
 
-import std.traits;
-import std.algorithm;
-import std.range;
-import std.exception;
-import std.array;
-
 import dmocks.util;
+import std.algorithm;
+import std.exception;
+import std.range;
+import std.traits;
 
 /// Factory for qualifier matches
 /// specifies match that exactly matches passed method T
