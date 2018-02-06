@@ -1,13 +1,11 @@
-DMocks-revived
+DMocks
 ====================
 
 What is it?
 ---------------------
-DMocks-revived is a mock object framework for the D Programming Language, written also in D.
+DMocks is a mock object framework for the D Programming Language, written also in D.
 
-Why "revived"?
----------------------
-The project is a reactivation of the dmocks subproject of felt project (http://dsource.org/projects/dmocks/)
+The project is a reactivation of DMocks-revived (https://github.com/QAston/DMocks-revived).
 
 Why are mocks useful?
 ---------------------
@@ -27,7 +25,7 @@ A mock objects framework (DMocks in this case) allows you to quickly create mock
 
 Examples
 ---------------------
-Examples how to include DMocks-revived in your project and basic usage of the lib can be found inside examples directory.
+Examples how to include DMocks in your project and basic usage of the lib can be found inside examples directory.
 
 Example project can be built using following dub command (assuming you have dub installed & in your path already) while inside directory with package.json:
 `dub build --build=unittest`
@@ -44,7 +42,7 @@ D mitigates the issue by having two types of polymorphism - both can be used to 
 - compile-time polymorphism - in form of templates - fast, produces "static" code
 - runtime polymorphism - in form of interfaces and base classes - a bit slower, produces "dynamic" code
 
-###Mocking using classes and interfaces (runtime polymorphism)
+### Mocking using classes and interfaces (runtime polymorphism)
 
 This type of mocking is the default and most widespread approach to mocking (known from java, python, C#, etc).
 In this case mock object type is a subtype of the mocked type.
@@ -91,7 +89,7 @@ void main()
 }
 ```
 
-###Mocking using templates (compile-time polymorphism)
+### Mocking using templates (compile-time polymorphism)
 
 This type of mocking isn't much widespread as there're only few languages providing templates (D, C++).
 In this case mock object type is a final class or struct containing same methods as mocked type and a reference to object of that type.
@@ -164,13 +162,9 @@ DMocks should build with DMD 2.078 and newer (older versions were not tested, mi
 
 Hacking
 ---------------------
-DMocks uses dub (github.com/rejectedsoftware/dub) as a build system. Dub was chosen because it supports generation of visuald and monod projects and is actively maintained. You can use any other build system if you wish.
-
 ### Build using dub:
-- install dub (github.com/rejectedsoftware/dub)
-- in root directory of DMocks run using your shell (or cmd.exe on windows): `dub build` or `dub build --config=[build configuration, see below]
-- more info about using dub is available on their git repository
+- In root directory of DMocks run using your shell (or cmd.exe on windows): `dub build` or `dub build --config=[build configuration, see below]
 
 ### Available dub build configurations:
-- library - produces dmocks-revived.lib file which can be included in your project, see examples/with-lib in the repository to see how this can be used
+- library - produces dmocks.lib file which can be included in your project, see examples/with-lib in the repository to see how this can be used
 - unittest - produces standalone executable useful for debugging the library itself

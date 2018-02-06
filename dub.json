@@ -1,7 +1,7 @@
 {
-    "name": "dmocks-revived",
+    "name": "dmocks",
     "description": "A mocking framework for the D programming language",
-    "homepage": "https://github.com/funkwerk/DMocks-revived",
+    "homepage": "https://github.com/funkwerk/dmocks",
     "authors": [
         "QAston"
     ],
