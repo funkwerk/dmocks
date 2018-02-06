@@ -58,36 +58,38 @@ That fact has several consequences:
 
 Example:
 
-    // class mock
-    class Dependency
-    {
-        //string call(TYPE)();  wouldn't be mocked as it's a template
+```d
+// class mock
+class Dependency
+{
+    //string call(TYPE)();  wouldn't be mocked as it's a template
 
-        string call()
-        {
-            return "Call on me, baby!";
-        }
-    }
-
-    void funcToTest(Dependency dep)
+    string call()
     {
-        writeln(dep.call());
+        return "Call on me, baby!";
     }
+}
 
-    unittest
-    {
-        auto mocker = new Mocker();
-        Object mock = mocker.mock!(Object)(); // will construct Dependency with given args
-        mocker.expect(mock.call());
-        mocker.replay;
-        funcToTest(mock);
-        mocker.verify;
-    }
+void funcToTest(Dependency dep)
+{
+    writeln(dep.call());
+}
 
-    void main()
-    {
-        funcToTest(new Dependency());
-    }
+unittest
+{
+    auto mocker = new Mocker();
+    Object mock = mocker.mock!(Object)(); // will construct Dependency with given args
+    mocker.expect(mock.call());
+    mocker.replay;
+    funcToTest(mock);
+    mocker.verify;
+}
+
+void main()
+{
+    funcToTest(new Dependency());
+}
+```
 
 ###Mocking using templates (compile-time polymorphism)
 
@@ -104,66 +106,71 @@ That fact has several consequences:
 
 Example:
 
-    // final class mock, could be not final (but calls won't be virtual), could be struct
-    final class Dependency
-    {
-        string call(TYPE)() {
-            return "Call on me, baby!";
-        }
+```d
+// final class mock, could be not final (but calls won't be virtual), could be struct
+final class Dependency
+{
+    string call(TYPE)() {
+        return "Call on me, baby!";
     }
+}
 
-    void funcToTest(DEPENDENCY)(DEPENDENCY dep)
-    {
-        writeln(dep.call(int)());
-    }
+void funcToTest(DEPENDENCY)(DEPENDENCY dep)
+{
+    writeln(dep.call(int)());
+}
 
-    unittest
-    {
-        auto mocker = new Mocker();
-        Object mock = mocker.mockFinal!(Object)(); // will construct Dependency with given args
-        // Object mock = mocker.mockFinalPassTo!(Object)(new Dependency()); - alternative - will use provided object for passThrough type of calls
-        mocker.expect(mock.call!(int)());
-        mocker.replay;
-        funcToTest(mock);
-        mocker.verify;
-    }
+unittest
+{
+    auto mocker = new Mocker();
+    Object mock = mocker.mockFinal!(Object)(); // will construct Dependency with given args
+    // Object mock = mocker.mockFinalPassTo!(Object)(new Dependency()); - alternative - will use provided object for passThrough type of calls
+    mocker.expect(mock.call!(int)());
+    mocker.replay;
+    funcToTest(mock);
+    mocker.verify;
+}
 
-    void main()
-    {
-        funcToTest(new Dependency());
-    }
+void main()
+{
+    funcToTest(new Dependency());
+}
+```
 
-
-###Other features
+### Other features
 
 DMocks supports repetition intervals:
 
-	// This call can be repeated anywhere from five to nine times.
-	// It must take the same arguments and will return the same value.
-	m.expect(obj.method(args)).returns(value).repeat(5, 9);
+```d
+// This call can be repeated anywhere from five to nine times.
+// It must take the same arguments and will return the same value.
+m.expect(obj.method(args)).returns(value).repeat(5, 9);
+```
 
 DMocks supports unordered and ordered expectations.
 
 Currently, dmocks intercepts method calls on methods in Object that are not overridden, such as opEquals and opHash. This can make Bad Things happen with associative arrays. One future point is to allow the methods that are inherited from Object and not overridden to pass through. In the meantime, though, you can do the following:
 
-	// Allow storage in associative arrays
-	// This is only necessary when mocking a concrete class, not with interfaces
-	mocker.expect(mocked.toHash).passThrough.repeatAny;
-	mocker.expect(mocked.opEquals).ignoreArgs.passThrough.repeatAny;
+```d
+// Allow storage in associative arrays
+// This is only necessary when mocking a concrete class, not with interfaces
+mocker.expect(mocked.toHash).passThrough.repeatAny;
+mocker.expect(mocked.opEquals).ignoreArgs.passThrough.repeatAny;
+```
 
 Supported platforms
 ---------------------
-DMocks should build with DMD 2.063 and newer (older versions were not tested, might work aswell) on any platform DMD supports, as it contains only platform independent code. Other compilers should build the project too.
+DMocks should build with DMD 2.078 and newer (older versions were not tested, might work aswell) on any platform DMD supports, as it contains only platform independent code. Other compilers should build the project too.
 
 Hacking
 ---------------------
 DMocks uses dub (github.com/rejectedsoftware/dub) as a build system. Dub was chosen because it supports generation of visuald and monod projects and is actively maintained. You can use any other build system if you wish.
 
-###Build using dub:
+### Build using dub:
 - install dub (github.com/rejectedsoftware/dub)
 - in root directory of DMocks run using your shell (or cmd.exe on windows): `dub build` or `dub build --config=[build configuration, see below]
 - more info about using dub is available on their git repository
 
-###Available dub build configurations:
+### Available dub build configurations:
 - library - produces dmocks-revived.lib file which can be included in your project, see examples/with-lib in the repository to see how this can be used
 - unittest - produces standalone executable useful for debugging the library itself
