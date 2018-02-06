@@ -19,33 +19,33 @@ class Foo {
         return i;
     }
 	
-	// here we will test what happens when Bar.doSomeCalculations returns 12
-	// it'd be hard to test that reliably without mocks
+    // here we will test what happens when Bar.doSomeCalculations returns 12
+    // it'd be hard to test that reliably without mocks
     unittest {
-		// import only for test builds
-		import dmocks.mocks;
+	// import only for test builds
+	import dmocks.mocks;
 
         std.stdio.writeln("Running tests...");
 		
         Mocker m = new Mocker();
-		// create mock object
+	// create mock object
         Bar bar = m.mock!(Bar);
         ubyte[] data;
-		// we expect bar.doSomeCalculations to be called, value 12 will be returned
+	// we expect bar.doSomeCalculations to be called, value 12 will be returned
         m.expect(bar.doSomeCalculations(data)).returns(12);
 
-		// stop registering expected calls
+	// stop registering expected calls
         m.replay();
 
-		// add mocked bar object as a dependency
-        Foo f = new Foo(bar);
-		// run our function using mocked dependency
+	// add mocked bar object as a dependency
+        auto f = new Foo(bar);
+	// run our function using mocked dependency
         int result = f.calculateThings(data);
 
-		// test the result of the function
-		// in our example the value should be the same as that produced by Bar
-		assert(result == 12);
-		// verify that calls were made as expected (you can verify order of calls, that all required calls were done etc)
+	// test the result of the function
+	// in our example the value should be the same as that produced by Bar
+	assert(result == 12);
+	// verify that calls were made as expected (you can verify order of calls, that all required calls were done etc)
         m.verify();
 
         std.stdio.writeln("All tests passed successfuly");
@@ -54,6 +54,6 @@ class Foo {
 
 void main()
 {
-    // run the tests by using dub build --build=unittest, you should get "All tests passed successfuly" message
-	// the program is silent when tests are disabled
+    // run the tests by using dub build --build=unittest, you should get "All tests passed successfully" message
+    // the program is silent when tests are disabled
 }
