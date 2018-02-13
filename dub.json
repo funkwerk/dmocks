@@ -7,10 +7,10 @@
     ],
     "license": "BSD",
     "sourcePaths": [
-        "dmocks"
+        "source"
     ],
     "importPaths": [
-        "."
+        "source"
     ],
     "configurations": [
         {

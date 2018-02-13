@@ -1,12 +1,11 @@
 # Object files
 *.o
-obj
+*.obj
 
 # Executables
 *.lib
 *.a
 *.exe
-*.exe_cv
 *.pdb
 
 # Project files
@@ -20,6 +19,6 @@ obj
 dub.selections.json
 
 # Dub binaries
-/dmocks-revived
-/dmocks-revived-test-library
+/dmocks
+/dmocks-test-library
 /examples/basic/basic*
