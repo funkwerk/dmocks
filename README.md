@@ -1,6 +1,11 @@
 DMocks
 ====================
 
+[![Build Status](https://travis-ci.org/funkwerk/dmocks.svg?branch=master)](https://travis-ci.org/funkwerk/dmocks)
+[![License](https://img.shields.io/badge/license-BSD--3--Clause-blue.svg)](https://raw.githubusercontent.com/funkwerk/dmocks/master/LICENSE.txt)
+[![Dub Version](https://img.shields.io/dub/v/dmocks.svg)](https://code.dlang.org/packages/dmocks)
+[![codecov](https://codecov.io/gh/funkwerk/dmocks/branch/master/graph/badge.svg)](https://codecov.io/gh/funkwerk/dmocks)
+
 What is it?
 ---------------------
 DMocks is a mock object framework for the D Programming Language, written also in D.
