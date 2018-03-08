@@ -52,11 +52,11 @@ struct Actor
         {
             if (self.action !is null)
             {
-                debugLog("action found, type: %s", self.action().type);
+                debugLog("action found, type: %s", self.action.type);
                 
-                if (self.action().type == typeid(void delegate(ArgTypes)))
+                if (self.action.type == typeid(void delegate(ArgTypes)))
                 {
-                    self.action().get!(void delegate(ArgTypes))()(args);
+                    self.action.get!(void delegate(ArgTypes))()(args);
                 }
                 else
                 {
@@ -68,14 +68,14 @@ struct Actor
         {
             if (self.returnValue !is null)
             {
-                rope.value = self.returnValue().get!(Unqual!TReturn);
+                rope.value = self.returnValue.get!(Unqual!TReturn);
             }
             else if (self.action !is null)
             {
-                debugLog("action found, type: %s", self.action().type);
-                if (self.action().type == typeid(TReturn delegate(ArgTypes)))
+                debugLog("action found, type: %s", self.action.type);
+                if (self.action.type == typeid(TReturn delegate(ArgTypes)))
                 {
-                    rope.value = self.action().get!(Unqual!TReturn delegate(ArgTypes))()(args);
+                    rope.value = self.action.get!(Unqual!TReturn delegate(ArgTypes))()(args);
                 }
                 else
                 {
@@ -91,14 +91,15 @@ struct Actor
 //TODO: make action parameters orthogonal or disallow certain combinations of them
 class Action
 {
-private
-{
-    bool _passThrough;
-    Dynamic _returnValue;
-    Dynamic _action;
-    Exception _toThrow;
-    TypeInfo _returnType;
-}
+    bool passThrough;
+
+    private Dynamic _returnValue;
+
+    Dynamic action;
+
+    Exception toThrow;
+
+    private TypeInfo _returnType;
 
     this(TypeInfo returnType)
     {
@@ -107,47 +108,7 @@ private
 
     bool hasAction ()
     {
-        return (_returnType is typeid(void)) || (_passThrough) || (_returnValue !is null) || (_action !is null) || (_toThrow !is null);
-    }
-
-    bool passThrough ()
-    {
-        return _passThrough;
-    }
-
-    void passThrough (bool value)
-    {
-        _passThrough = value;
-    }
-
-    Dynamic returnValue ()
-    {
-        return _returnValue;
-    }
-
-    void returnValue (Dynamic value)
-    {
-        _returnValue = value;
-    }
-    
-    void action (Dynamic value)
-    {
-        _action = value;
-    }
-
-    Dynamic action ()
-    {
-        return _action;
-    }
-
-    Exception toThrow ()
-    {
-        return _toThrow;
-    }
-
-    void toThrow (Exception value)
-    {
-        _toThrow = value;
+        return (_returnType is typeid(void)) || (passThrough) || (_returnValue !is null) || (action !is null) || (toThrow !is null);
     }
 
     Actor getActor ()
@@ -155,6 +116,23 @@ private
         Actor act;
         act.self = this;
         return act;
+    }
+
+    @property Dynamic returnValue()
+    {
+        return this._returnValue;
+    }
+
+    void setReturnValue(Dynamic dynamic)
+    {
+        import std.format : format;
+
+        if (!dynamic.canConvertTo(this._returnType))
+        {
+            throw new Exception(format!"Cannot set return value to '%s': expected '%s'"(dynamic.type, this._returnType));
+        }
+
+        this._returnValue = dynamic;
     }
 }
 
@@ -164,8 +142,8 @@ unittest
     Dynamic v = dynamic(5);
     Action act = new Action(typeid(int));
     assert (act.returnValue is null);
-    act.returnValue = v;
-    assert (act.returnValue() == dynamic(5));
+    act.setReturnValue(v);
+    assert (act.returnValue == dynamic(5));
 }
 
 @("action action")
@@ -175,7 +153,7 @@ unittest
     Action act = new Action(typeid(int));
     assert (act.action is null);
     act.action = v;
-    assert (act.action() == v);
+    assert (act.action == v);
 }
 
 @("action exception")
@@ -193,15 +171,15 @@ unittest
 {
     Action act = new Action(typeid(int));
     act.passThrough = true;
-    assert (act.passThrough());
+    assert (act.passThrough);
     act.passThrough = false;
-    assert (!act.passThrough());
+    assert (!act.passThrough);
 }
 
 @("action hasAction")
 unittest
 {
     Action act = new Action(typeid(int));
-    act.returnValue(dynamic(5));
+    act.setReturnValue(dynamic(5));
     assert(act.hasAction);
 }
