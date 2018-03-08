@@ -6,29 +6,6 @@ import std.traits;
 
 package:
 
-interface IAction
-{
-    bool passThrough ();
-
-    void passThrough (bool value);
-
-    Dynamic returnValue ();
-
-    void returnValue (Dynamic value);
-
-    void action (Dynamic value);
-
-    Dynamic action ();
-
-    Exception toThrow ();
-
-    void toThrow (Exception value);
-
-    bool hasAction ();
-    
-    Actor getActor ();
-}
-
 enum ActionStatus
 {
     Success,
@@ -55,7 +32,7 @@ struct ReturnOrPass(T)
 
 struct Actor 
 {
-    IAction self;
+    Action self;
 
     ReturnOrPass!(TReturn) act (TReturn, ArgTypes...) (ArgTypes args)
     {
@@ -112,7 +89,7 @@ struct Actor
 }
 
 //TODO: make action parameters orthogonal or disallow certain combinations of them
-class Action : IAction
+class Action
 {
 private
 {
