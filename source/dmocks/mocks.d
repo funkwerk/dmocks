@@ -353,7 +353,7 @@ public class ExpectationSetup
     */
    ExpectationSetup returns (T)(T value) 
    {
-       _expectation.action.setReturnValue(dynamic(value));
+       _expectation.action.returnValue = dynamic(value);
        return this;
    }
 

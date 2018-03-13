@@ -26,7 +26,10 @@ abstract class Dynamic
 /// returns stored value if type T is precisely the type of variable stored, variable stored can be implicitly to that type
 T get(T)(Dynamic d)
 {
-    // in addition to init property requirement disallow user defined value types which can have alias this to null-able type 
+    import std.exception : enforce;
+    import std.format : format;
+
+    // in addition to init property requirement disallow user defined value types which can have alias this to null-able type
     static if (!is(T==union) && !is(T==struct) && is(typeof(T.init is null)))
     {
         if (d.type == typeid(typeof(null)))
@@ -34,14 +37,10 @@ T get(T)(Dynamic d)
     }
     if (d.type == typeid(T))
         return ((cast(DynamicT!T)d).data());
+
     void[] convertResult = d.convertTo(typeid(T));
 
-    if (convertResult == null)
-    {
-        import std.format : format;
-
-        throw new Exception(format!"Cannot convert stored value of type '%s' to '%s'!"(d.type, T.stringof));
-    }
+    enforce(convertResult, format!"Cannot convert stored value of type '%s' to '%s'!"(d.type, T.stringof));
 
     return (cast(T*)convertResult)[0];
 }
@@ -169,6 +168,24 @@ unittest
     int[5] a;
     auto d = dynamic(a);
     assert(d.get!(int[5]) == [0,0,0,0,0]);
+}
+
+unittest
+{
+    float f;
+    auto d = dynamic(f);
+    bool errored = false;
+
+    try
+    {
+        int i = d.get!int;
+    }
+    catch (Exception)
+    {
+        errored = true;
+    }
+
+    assert(errored);
 }
 
 /+ ImplicitConversionTargets doesn't include alias thises

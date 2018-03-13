@@ -106,16 +106,18 @@ class Action
         this._returnType = returnType;
     }
 
-    bool hasAction ()
+    bool hasAction()
     {
-        return (_returnType is typeid(void)) || (passThrough) || (_returnValue !is null) || (action !is null) || (toThrow !is null);
+        return (_returnType is typeid(void)) || (passThrough) ||
+            (_returnValue !is null) || (action !is null) || (toThrow !is null);
     }
 
-    Actor getActor ()
+    Actor getActor()
     {
-        Actor act;
-        act.self = this;
-        return act;
+        Actor actor;
+
+        actor.self = this;
+        return actor;
     }
 
     @property Dynamic returnValue()
@@ -123,14 +125,14 @@ class Action
         return this._returnValue;
     }
 
-    void setReturnValue(Dynamic dynamic)
+    @property void returnValue(Dynamic dynamic)
     {
+        import std.exception : enforce;
         import std.format : format;
 
-        if (!dynamic.canConvertTo(this._returnType))
-        {
-            throw new Exception(format!"Cannot set return value to '%s': expected '%s'"(dynamic.type, this._returnType));
-        }
+        enforce(
+            dynamic.canConvertTo(this._returnType),
+            format!"Cannot set return value to '%s': expected '%s'"(dynamic.type, this._returnType));
 
         this._returnValue = dynamic;
     }
@@ -142,8 +144,29 @@ unittest
     Dynamic v = dynamic(5);
     Action act = new Action(typeid(int));
     assert (act.returnValue is null);
-    act.setReturnValue(v);
+    act.returnValue = v;
     assert (act.returnValue == dynamic(5));
+}
+
+@("action throws on mismatching returnValue")
+unittest
+{
+    Dynamic v = dynamic(5.0f);
+    Action act = new Action(typeid(int));
+    bool errored = false;
+
+    assert (act.returnValue is null);
+
+    try
+    {
+        act.returnValue = v;
+    }
+    catch (Exception)
+    {
+        errored = true;
+    }
+
+    assert (errored);
 }
 
 @("action action")
@@ -180,6 +203,6 @@ unittest
 unittest
 {
     Action act = new Action(typeid(int));
-    act.setReturnValue(dynamic(5));
+    act.returnValue = dynamic(5);
     assert(act.hasAction);
 }
