@@ -169,6 +169,24 @@ unittest
     assert (errored);
 }
 
+@("action accepts null returnValue for array")
+unittest
+{
+    Action act = new Action(typeid(string));
+
+    act.returnValue = dynamic(null);
+    assert(act.returnValue.get!string is null);
+}
+
+@("action accepts null returnValue for pointer")
+unittest
+{
+    Action act = new Action(typeid(int*));
+
+    act.returnValue = dynamic(null);
+    assert(act.returnValue.get!(int*) is null);
+}
+
 @("action action")
 unittest
 {

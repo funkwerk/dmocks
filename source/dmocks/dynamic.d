@@ -13,14 +13,10 @@ abstract class Dynamic
 
     /// returns stored typeinfo
     abstract TypeInfo type();
-    /// converts stored value to given "to" type and returns 1el array of target type vals or null when conversion failed
+    /// converts stored value to given "to" type and returns 1el array of target type vals. conversion must be defined.
     abstract void[] convertTo(TypeInfo to);
-
-    /// returns true if variable held by dynamic is convertible to given type
-    bool canConvertTo(TypeInfo to)
-    {
-        return type==to || convertTo(to) !is null;
-    }
+    /// checks if stored value can be converted to given "to" type.
+    abstract bool canConvertTo(TypeInfo to);
 }
 
 /// returns stored value if type T is precisely the type of variable stored, variable stored can be implicitly to that type
@@ -38,11 +34,11 @@ T get(T)(Dynamic d)
     if (d.type == typeid(T))
         return ((cast(DynamicT!T)d).data());
 
+    enforce(d.canConvertTo(typeid(T)), format!"Cannot convert stored value of type '%s' to '%s'!"(d.type, T.stringof));
+
     void[] convertResult = d.convertTo(typeid(T));
 
-    enforce(convertResult, format!"Cannot convert stored value of type '%s' to '%s'!"(d.type, T.stringof));
-
-    return (cast(T*)convertResult)[0];
+    return (cast(T*)convertResult.ptr)[0];
 }
 
 /// a helper function for creating Dynamic obhects
@@ -103,19 +99,61 @@ class DynamicT(T) : Dynamic
     }
 
     ///
+    override bool canConvertTo(TypeInfo to)
+    {
+        import std.algorithm : any;
+
+        static if (is(T == typeof(null)))
+        {
+            if (cast(TypeInfo_Array) to || cast(TypeInfo_Pointer) to)
+            {
+                return true;
+            }
+        }
+
+        enum getTypeId(T) = typeid(T);
+        alias ConversionTargets = ImplicitConversionTargets!T;
+
+        static if (ConversionTargets.length)
+        {
+            return type == to || [staticMap!(getTypeId, ConversionTargets)].any!(t => t == to);
+        }
+        else
+        {
+            return type == to;
+        }
+    }
+
+    ///
     override void[] convertTo(TypeInfo to)
     {
-        foreach(target;ImplicitConversionTargets!(T))
+        static if (is(T == typeof(null)))
         {
-            if (typeid(target) == to)
+            if (cast(TypeInfo_Array) to)
             {
-                auto ret = new target[1];
-                ret[0] = cast(target)_data;
+                auto ret = new void[][1];
+                ret[0] = null;
+                return ret;
+            }
+            if (cast(TypeInfo_Pointer) to)
+            {
+                auto ret = new void*[1];
+                ret[0] = null;
                 return ret;
             }
         }
 
-        return null;
+        foreach(Target; ImplicitConversionTargets!(T))
+        {
+            if (typeid(Target) == to)
+            {
+                auto ret = new Target[1];
+                ret[0] = cast(Target) _data;
+                return ret;
+            }
+        }
+
+        assert(false);
     }
 }
 
