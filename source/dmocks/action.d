@@ -151,22 +151,13 @@ unittest
 @("action throws on mismatching returnValue")
 unittest
 {
+    import std.exception : assertThrown;
+
     Dynamic v = dynamic(5.0f);
     Action act = new Action(typeid(int));
-    bool errored = false;
 
     assert (act.returnValue is null);
-
-    try
-    {
-        act.returnValue = v;
-    }
-    catch (Exception)
-    {
-        errored = true;
-    }
-
-    assert (errored);
+    assertThrown!Exception (act.returnValue = v);
 }
 
 @("action accepts null returnValue for array")

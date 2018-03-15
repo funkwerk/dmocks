@@ -210,20 +210,12 @@ unittest
 
 unittest
 {
+    import std.exception : assertThrown;
+
     float f;
     auto d = dynamic(f);
-    bool errored = false;
 
-    try
-    {
-        int i = d.get!int;
-    }
-    catch (Exception)
-    {
-        errored = true;
-    }
-
-    assert(errored);
+    assertThrown!Exception(d.get!int);
 }
 
 /+ ImplicitConversionTargets doesn't include alias thises
