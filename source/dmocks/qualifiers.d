@@ -152,12 +152,12 @@ private string[] getMethodAttributes(alias T)()
 /// checks if qualifiers is a unique set of valid qualifiers
 public void enforceQualifierNames(string[] qualifiers)
 {
-    enforceEx!(MocksSetupException)(qualifiers.uniq.array == qualifiers,"Qualifiers: given qualifiers are not unique: " ~ qualifiers.join(" "));
+    enforce!(MocksSetupException)(qualifiers.uniq.array == qualifiers,"Qualifiers: given qualifiers are not unique: " ~ qualifiers.join(" "));
 
     // bad perf, but data is small
     foreach(string q; qualifiers)
     {
-        enforceEx!(MocksSetupException)(validQualifiers.canFind(q), "Qualifiers: found invalid qualifier: " ~ q);
+        enforce!(MocksSetupException)(validQualifiers.canFind(q), "Qualifiers: found invalid qualifier: " ~ q);
     }
 }
 
@@ -194,11 +194,11 @@ void enforceQualifierMatch(bool[string] qualifiers)
     }
     void enforceBothNotSet(string first, string second)()
     {
-        enforceEx!(MocksSetupException)(!testBothSet!(first, second), "Qualifiers: cannot require both "~first~" and "~second);
+        enforce!(MocksSetupException)(!testBothSet!(first, second), "Qualifiers: cannot require both "~first~" and "~second);
     }
     void enforceThreeNotSet(string first, string second, string third)()
     {
-        enforceEx!(MocksSetupException)(!testThreeForbidden!(first, second, third), "Qualifiers: cannot forbid all "~first~", "~second~" and "~third);
+        enforce!(MocksSetupException)(!testThreeForbidden!(first, second, third), "Qualifiers: cannot forbid all "~first~", "~second~" and "~third);
     }
     enforceBothNotSet!("@trusted", "@safe");
     enforceBothNotSet!("@system", "@trusted");
