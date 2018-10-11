@@ -2,6 +2,7 @@ module dmocks.action;
 
 import dmocks.dynamic;
 import dmocks.util;
+import std.meta : AliasSeq;
 import std.traits;
 
 package:
@@ -160,62 +161,20 @@ unittest
     assertThrown!Exception (act.returnValue = v);
 }
 
-@("action accepts null returnValue for array")
-unittest
+private interface ExampleInterface
 {
-    Action act = new Action(typeid(string));
-
-    act.returnValue = dynamic(null);
-    assert(act.returnValue.get!string is null);
 }
 
-@("action accepts null returnValue for pointer")
-unittest
+static foreach (Type; AliasSeq!(string, int*, Object, ExampleInterface, void function(), void delegate()))
 {
-    Action act = new Action(typeid(int*));
-
-    act.returnValue = dynamic(null);
-    assert(act.returnValue.get!(int*) is null);
-}
-
-@("action accepts null returnValue for class")
-unittest
-{
-    Action act = new Action(typeid(Object));
-
-    act.returnValue = dynamic(null);
-    assert(act.returnValue.get!Object is null);
-}
-
-@("action accepts null returnValue for interface")
-unittest
-{
-    interface Intf
+    @("action accepts null returnValue for " ~ Type.stringof)
+    unittest
     {
+        Action act = new Action(typeid(Type));
+
+        act.returnValue = dynamic(null);
+        assert(act.returnValue.get!Type is null);
     }
-
-    Action act = new Action(typeid(Intf));
-
-    act.returnValue = dynamic(null);
-    assert(act.returnValue.get!Intf is null);
-}
-
-@("action accepts null returnValue for function")
-unittest
-{
-    Action act = new Action(typeid(void function()));
-
-    act.returnValue = dynamic(null);
-    assert(act.returnValue.get!(void function()) is null);
-}
-
-@("action accepts null returnValue for delegate")
-unittest
-{
-    Action act = new Action(typeid(void delegate()));
-
-    act.returnValue = dynamic(null);
-    assert(act.returnValue.get!(void delegate()) is null);
 }
 
 @("action action")
