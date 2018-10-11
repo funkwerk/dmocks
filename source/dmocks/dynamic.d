@@ -25,12 +25,6 @@ T get(T)(Dynamic d)
     import std.exception : enforce;
     import std.format : format;
 
-    // in addition to init property requirement disallow user defined value types which can have alias this to null-able type
-    static if (!is(T==union) && !is(T==struct) && is(typeof(T.init is null)))
-    {
-        if (d.type == typeid(typeof(null)))
-            return null;
-    }
     if (d.type == typeid(T))
         return ((cast(DynamicT!T)d).data());
 
@@ -105,7 +99,10 @@ class DynamicT(T) : Dynamic
 
         static if (is(T == typeof(null)))
         {
-            if (cast(TypeInfo_Array) to || cast(TypeInfo_Pointer) to)
+            // types that have implicit conversion from null
+            if (cast(TypeInfo_Array) to || cast(TypeInfo_Pointer) to
+                || cast(TypeInfo_Class) to || cast(TypeInfo_Interface) to
+                || cast(TypeInfo_Function) to || cast(TypeInfo_Delegate) to)
             {
                 return true;
             }
@@ -127,19 +124,30 @@ class DynamicT(T) : Dynamic
     ///
     override void[] convertTo(TypeInfo to)
     {
+        import std.format : format;
+
         static if (is(T == typeof(null)))
         {
-            if (cast(TypeInfo_Array) to)
+            interface Intf
             {
-                auto ret = new void[][1];
-                ret[0] = null;
-                return ret;
             }
-            if (cast(TypeInfo_Pointer) to)
+            static foreach (pair; [
+                [q{TypeInfo_Array}, q{void[]}],
+                [q{TypeInfo_Pointer}, q{void*}],
+                [q{TypeInfo_Class}, q{Object}],
+                [q{TypeInfo_Interface}, q{Intf}],
+                [q{TypeInfo_Function}, q{void function()}],
+                [q{TypeInfo_Delegate}, q{void delegate()}],
+            ])
             {
-                auto ret = new void*[1];
-                ret[0] = null;
-                return ret;
+                mixin(format!q{
+                    if (cast(%s) to)
+                    {
+                        auto ret = new %s[1];
+                        ret[0] = null;
+                        return ret;
+                    }
+                }(pair[0], pair[1]));
             }
         }
 

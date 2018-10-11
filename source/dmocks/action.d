@@ -178,6 +178,46 @@ unittest
     assert(act.returnValue.get!(int*) is null);
 }
 
+@("action accepts null returnValue for class")
+unittest
+{
+    Action act = new Action(typeid(Object));
+
+    act.returnValue = dynamic(null);
+    assert(act.returnValue.get!Object is null);
+}
+
+@("action accepts null returnValue for interface")
+unittest
+{
+    interface Intf
+    {
+    }
+
+    Action act = new Action(typeid(Intf));
+
+    act.returnValue = dynamic(null);
+    assert(act.returnValue.get!Intf is null);
+}
+
+@("action accepts null returnValue for function")
+unittest
+{
+    Action act = new Action(typeid(void function()));
+
+    act.returnValue = dynamic(null);
+    assert(act.returnValue.get!(void function()) is null);
+}
+
+@("action accepts null returnValue for delegate")
+unittest
+{
+    Action act = new Action(typeid(void delegate()));
+
+    act.returnValue = dynamic(null);
+    assert(act.returnValue.get!(void delegate()) is null);
+}
+
 @("action action")
 unittest
 {

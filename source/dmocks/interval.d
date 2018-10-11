@@ -39,7 +39,7 @@ struct Interval
 
     void enforceValid()
     {
-        enforceEx!MocksSetupException(Valid, "Interval: invalid interval range: "~ toString());
+        enforce!MocksSetupException(Valid, "Interval: invalid interval range: "~ toString());
     }
 }
 
