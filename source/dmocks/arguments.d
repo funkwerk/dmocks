@@ -34,11 +34,20 @@ class StrictArgumentsMatch : ArgumentsMatch
 class ArgumentsTypeMatch : ArgumentsMatch
 {
     private Dynamic[] _arguments;
-    private bool delegate(Dynamic, Dynamic) _del;
-    this(Dynamic[] args, bool delegate(Dynamic, Dynamic) del)
+    private bool delegate(Dynamic, Dynamic)[] _comparators;
+    this(Dynamic[] args, bool delegate(Dynamic, Dynamic) comparator)
+    {
+        this(args, [comparator]);
+    }
+    this(Dynamic[] args, bool delegate(Dynamic, Dynamic)[] comparators)
+    in
+    {
+        assert(args.length == comparators.length || comparators.length == 1);
+    }
+    do
     {
         _arguments = args;
-        _del = del;
+        _comparators = comparators;
     }
     override bool matches(Dynamic[] args)
     {
@@ -46,12 +55,31 @@ class ArgumentsTypeMatch : ArgumentsMatch
         if (args.length != _arguments.length)
             return false;
 
-        foreach(e; zip(_arguments, args))
+        if (_comparators.length == 1)
         {
-            if (e[0].type != e[1].type)
-                return false;
-            if (!_del(e[0], e[1]))
-                return false;
+            foreach(e; zip(_arguments, args))
+            {
+                auto comparator = _comparators[0];
+
+                if (e[0].type != e[1].type)
+                    return false;
+                if (!comparator(e[0], e[1]))
+                    return false;
+            }
+        }
+        else
+        {
+            assert(_comparators.length == args.length);
+
+            foreach(e; zip(_arguments, args, _comparators))
+            {
+                auto comparator = e[2];
+
+                if (e[0].type != e[1].type)
+                    return false;
+                if (!comparator(e[0], e[1]))
+                    return false;
+            }
         }
         return true;
     }

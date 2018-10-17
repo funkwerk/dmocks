@@ -288,9 +288,18 @@ public class ExpectationSetup
    /**
     * Allow providing custom argument comparator for matching calls to this expectation.
     */
-   ExpectationSetup customArgsComparator (bool delegate(Dynamic expected, Dynamic provided) del) 
+   ExpectationSetup customArgsComparator (bool delegate(Dynamic expected, Dynamic provided) comparator)
    {
-       _expectation.arguments = new ArgumentsTypeMatch(_setUpCall.arguments, del);
+       _expectation.arguments = new ArgumentsTypeMatch(_setUpCall.arguments, comparator);
+       return this;
+   }
+
+   /**
+    * Allow providing custom argument comparators for matching each parameter of calls to this expectation.
+    */
+   ExpectationSetup customArgsComparators (bool delegate(Dynamic expected, Dynamic provided)[] comparators...)
+   {
+       _expectation.arguments = new ArgumentsTypeMatch(_setUpCall.arguments, comparators);
        return this;
    }
 
@@ -592,6 +601,13 @@ version (unittest)
     class TakesFloat
     {
         public void foo(float a)
+        {
+        }
+    }
+
+    class TakesMultiple
+    {
+        public void foo(float a, int b)
         {
         }
     }
@@ -1195,10 +1211,10 @@ unittest
     auto mocker = new Mocker;
     auto dependency = mocker.mock!TakesFloat;
     mocker.expect(dependency.foo(1.0f)).customArgsComparator(
-         (Dynamic a, Dynamic b) 
-         { 
+         (Dynamic a, Dynamic b)
+         {
              if (a.type == typeid(float))
-                { return ( abs(a.get!float() - b.get!float()) < 0.1f); } 
+                { return ( abs(a.get!float() - b.get!float()) < 0.1f); }
              return true;
          }).repeat(2);
     mocker.replay;
@@ -1206,6 +1222,32 @@ unittest
     // custom comparison example - treat similar floats as equals
     dependency.foo(1.01);
     dependency.foo(1.02);
+}
+
+@("customArgsComparators")
+unittest
+{
+    import std.math;
+
+    auto mocker = new Mocker;
+    auto dependency = mocker.mock!TakesMultiple;
+    mocker.expect(dependency.foo(1.0f, 1)).customArgsComparators(
+         (Dynamic a, Dynamic b)
+         {
+             assert(a.type == typeid(float));
+
+             return abs(a.get!float() - b.get!float()) < 0.1f;
+         },
+         (Dynamic a, Dynamic b)
+         {
+             assert(a.type == typeid(int));
+
+             return a.get!int() == b.get!int();
+         }).repeat(2);
+    mocker.replay;
+
+    dependency.foo(1.01, 1);
+    dependency.foo(1.02, 1);
 }
 
 unittest
