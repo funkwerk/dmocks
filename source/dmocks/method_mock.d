@@ -22,7 +22,8 @@ string Methods (T, bool INHERITANCE, string methodName) () {
         foreach (overloadIndex, method; __traits(getOverloads, T, methodName)) 
         {
             static if (!__traits(isStaticFunction, method) && !(methodName[0..2] == "__") && 
-                       !(INHERITANCE && __traits(isFinalFunction, method)))
+                       !(INHERITANCE && __traits(isFinalFunction, method)) &&
+                      __traits(getProtection, method) != "private")
                 methodBodies ~= BuildMethodOverloads!(T.stringof, methodName, overloadIndex, method, INHERITANCE);
         }
     }
