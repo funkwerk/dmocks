@@ -1,4 +1,4 @@
-module test.PublicPRivateOverloadTest;
+module test.PublicPrivateOverloadTest;
 
 import dmocks.mocks;
 import test.ClassWithPublicPrivateOverload;
