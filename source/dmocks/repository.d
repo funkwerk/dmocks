@@ -16,6 +16,7 @@ class MockRepository
     private bool _recording = true;
     private bool _ordered = false;
     private bool _allowUnexpected = false;
+    private bool _fallback = false; // next recorded call is a fallback call (calls that should always succeed)
 
     private Call[] _calls = [];
     private Call[] _unexpectedCalls = [];
@@ -23,6 +24,10 @@ class MockRepository
     private CallExpectation _lastRecordedCallExpectation; // stores last call added to _lastGroupExpectation
     private Call _lastRecordedCall; // stores last call with which _lastRecordedCallExpectation was created
     private GroupExpectation _lastGroupExpectation; // stores last group added to _rootGroupExpectation
+
+    private GroupExpectation _fallbackGroupExpectation; // stores fallback methods, like toString and opEquals
+    private Call _lastRecordedFallbackCall; // like _lastRecordedCall for fallback
+    private CallExpectation _lastRecordedFallbackCallExpectation; // like _lastRecordedCallExpectation for fallback
 
     private void CheckLastCallSetup ()
     {
@@ -38,6 +43,7 @@ class MockRepository
     this()
     {   
         _rootGroupExpectation = createGroupExpectation(false);
+        _fallbackGroupExpectation = createGroupExpectation(false);
         Ordered(false);
     }
 
@@ -89,6 +95,13 @@ class MockRepository
     void Record(CallExpectation expectation, Call call)
     {
         CheckLastCallSetup();
+        if (_fallback) {
+            _fallbackGroupExpectation.addExpectation(expectation);
+            _lastRecordedFallbackCallExpectation = expectation;
+            _lastRecordedFallbackCall = call;
+            _fallback = false;
+            return;
+        }
         _lastGroupExpectation.addExpectation(expectation);
         _lastRecordedCallExpectation = expectation;
         _lastRecordedCall = call;
@@ -128,8 +141,12 @@ class MockRepository
     {
         _calls ~= call;
         auto exp = _rootGroupExpectation.match(call);
-        if (exp is null)
-            _unexpectedCalls ~= _calls;
+        if (exp is null) {
+            exp = _fallbackGroupExpectation.match(call);
+            if (exp is null) {
+                _unexpectedCalls ~= _calls;
+            }
+        }
         return exp;
     }
 
@@ -143,6 +160,16 @@ class MockRepository
         return _lastRecordedCall;
     }
 
+    package CallExpectation LastRecordedFallbackCallExpectation ()
+    {
+        return _lastRecordedFallbackCallExpectation;
+    }
+
+    package Call LastRecordedFallbackCall ()
+    {
+        return _lastRecordedFallbackCall;
+    }
+
     void Verify (bool checkUnmatchedExpectations, bool checkUnexpectedCalls)
     {
         string expectationError = "";
@@ -153,6 +180,14 @@ class MockRepository
             expectationError~="\n" ~ UnexpectedCallsReport;
         if (expectationError != "")
             throw new ExpectationViolationException(expectationError);
+    }
+
+    package void RecordFallback (T) (lazy T methodCall)
+    {
+        _fallback = true;
+        methodCall();
+        assert(_fallback == false);
+        return;
     }
 
     string UnexpectedCallsReport()
