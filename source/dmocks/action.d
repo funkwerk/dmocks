@@ -17,13 +17,13 @@ struct ReturnOrPass(T)
 {
     static if (!is(T == void))
     {
-        static if (is(typeof({ Unqual!T value; })))
+        static if (is(typeof({ T value; })))
         {
-            Unqual!T value;
+            T value;
         }
         else
         {
-            auto value = Unqual!T.init;
+            auto value = T.init;
         }
     }
 
@@ -37,6 +37,8 @@ struct Actor
 
     ReturnOrPass!(TReturn) act (TReturn, ArgTypes...) (ArgTypes args)
     {
+        import std.algorithm.mutation: moveEmplace;
+
         debugLog("Actor:act");
 
         ReturnOrPass!(TReturn) rope;
@@ -69,14 +71,18 @@ struct Actor
         {
             if (self.returnValue !is null)
             {
-                rope.value = self.returnValue.get!(Unqual!TReturn);
+                auto value = self.returnValue.get!TReturn;
+
+                value.moveEmplace(rope.value);
             }
             else if (self.action !is null)
             {
                 debugLog("action found, type: %s", self.action.type);
                 if (self.action.type == typeid(TReturn delegate(ArgTypes)))
                 {
-                    rope.value = self.action.get!(Unqual!TReturn delegate(ArgTypes))()(args);
+                    auto value = self.action.get!(TReturn delegate(ArgTypes))()(args);
+
+                    value.moveEmplace(rope.value);
                 }
                 else
                 {

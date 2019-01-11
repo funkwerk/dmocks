@@ -98,14 +98,14 @@ class MockRepository
     {
         alias ReturnType!(FunctionTypeOf!(METHOD)) TReturn;
 
-        ReturnOrPass!(TReturn) rope;
         auto call = createCall!METHOD(mocked, name, args);
         debugLog("checking Recording...");
         if (Recording)
         {
             auto expectation = createExpectation!(METHOD)(mocked, name, args);
+
             Record(expectation, call);
-            return rope;
+            return ReturnOrPass!(TReturn).init;
         }
 
         debugLog("checking for matching expectation...");
@@ -115,11 +115,11 @@ class MockRepository
         if (expectation is null)
         {
             if (AllowUnexpected())
-                return rope;
+                return ReturnOrPass!(TReturn).init;
             throw new ExpectationViolationException("Unexpected call to method: " ~ call.toString());
         }
 
-        rope = expectation.action.getActor().act!(TReturn, ARGS)(args);
+        auto rope = expectation.action.getActor().act!(TReturn, ARGS)(args);
         debugLog("returning...");
         return rope;
     }

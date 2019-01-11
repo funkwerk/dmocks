@@ -111,9 +111,15 @@ auto ref mockMethodCall(alias self, string name, T, OBJ, CALLER, FORWARD, Args..
     dmocks.action.ReturnOrPass!(ReturnType!(FunctionTypeOf!(self))) rope;
     void setRope()
     {
-        // CAST CHEATS here - can't operate on const/shared refs without cheating on typesystem. this makes these calls threadunsafe
+        import std.algorithm.mutation: moveEmplace;
+
+        // CAST CHEATS here - can't operate on const/shared refs without cheating on typesystem.
+        // this makes these calls threadunsafe
         // because of fullyQualifiedName bug we need to pass name to the function
-        rope = (cast()_owner).MethodCall!(self, ParameterTypeTuple!self)(cast(MockId)(obj.mockId___), __traits(identifier, T) ~ "." ~ name, params);
+        auto value = (cast()_owner).MethodCall!(self, ParameterTypeTuple!self)
+            (cast(MockId)(obj.mockId___), __traits(identifier, T) ~ "." ~ name, params);
+
+        (() @trusted { value.moveEmplace(rope); })();
     }
     static if (functionAttributes!(FunctionTypeOf!(self)) & FunctionAttribute.nothrow_)
     {
