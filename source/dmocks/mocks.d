@@ -101,7 +101,15 @@ public class Mocker
         {
             static assert (is(T == class) || is(T == interface), 
                            "only classes and interfaces can be mocked using this type of mock");
-            return dmocks.factory.mock!(T)(_repository, args);
+            auto value = dmocks.factory.mock!(T)(_repository, args);
+            static if (is(T == class)
+                && __traits(compiles, value.toString())
+                && __traits(compiles, value.opEquals(null)))
+            {
+                expectFallback(value.toString()).repeatAny.passThrough;
+                expectFallback(value.opEquals(null)).ignoreArgs.repeatAny.passThrough;
+            }
+            return value;
         }
 
         /** 
@@ -196,6 +204,14 @@ public class Mocker
             if (pre is post)
                 throw new InvalidOperationException("mocks.Mocker.expect: you did not call a method mocked by the mocker!");
             return lastCall();
+        }
+
+        private ExpectationSetup expectFallback (T) (lazy T methodCall) {
+            _repository.RecordFallback(methodCall);
+            return new ExpectationSetup(
+                _repository.LastRecordedFallbackCallExpectation(),
+                _repository.LastRecordedFallbackCall(),
+            );
         }
 
         /**
@@ -371,11 +387,13 @@ public class ExpectationSetup
    /**
     * Instead of returning or throwing a given value, pass the call through to
     * the mocked type object. For mock***PassTo(obj) obj has to be valid for this to work.
-    * 
-    * This is useful for example for enabling use of mock object in hashmaps by enabling 
+    *
+    * This is useful for example for enabling use of mock object in hashmaps by enabling
     * toHash and opEquals of your class.
+    *
+    * `opEquals` and `toString` are passed through automatically.
     */
-   ExpectationSetup passThrough () 
+   ExpectationSetup passThrough ()
    {
        _expectation.action.passThrough = true;
        return this;
@@ -676,12 +694,19 @@ unittest
     assert (e !is null);
 }
 
+class TestClass
+{
+    string test() { return "test"; }
+    string test1() { return "test 1"; }
+    string test2() { return "test 2"; }
+}
+
 @("return a value")
 unittest
 {
     Mocker m = new Mocker();
-    Object o = m.mock!(Object);
-    o.toString;
+    TestClass cl = m.mock!(TestClass);
+    cl.test;
     auto e = m.lastCall;
 
     assert (e !is null);
@@ -692,41 +717,41 @@ unittest
 unittest
 {
     Mocker m = new Mocker();
-    Object o = m.mock!(Object);
+    TestClass cl = m.mock!(TestClass);
     m.replay();
-    assertThrown!ExpectationViolationException(o.toString);
+    assertThrown!ExpectationViolationException(cl.test);
 }
 
 @("expect")
 unittest
 {
     Mocker m = new Mocker();
-    Object o = m.mock!(Object);
-    m.expect(o.toString).repeat(0).returns("mrow?");
+    TestClass cl = m.mock!(TestClass);
+    m.expect(cl.test).repeat(0).returns("mrow?");
     m.replay();
-    assertThrown(o.toString);
+    assertThrown(cl.test);
 }
 
 @("repeat single")
 unittest
 {
     Mocker m = new Mocker();
-    Object o = m.mock!(Object);
-    m.expect(o.toString).repeat(2).returns("foom?");
+    TestClass cl = m.mock!(TestClass);
+    m.expect(cl.test).repeat(2).returns("foom?");
 
     m.replay();
 
-    o.toString;
-    o.toString;
-    assertThrown!ExpectationViolationException(o.toString);
+    cl.test;
+    cl.test;
+    assertThrown!ExpectationViolationException(cl.test);
 }
 
 @("repository match counts")
 unittest
 {
     auto r = new Mocker();
-    auto o = r.mock!(Object);
-    o.toString;
+    auto cl = r.mock!(TestClass);
+    cl.test;
     r.lastCall().repeat(2, 2).returns("mew.");
     r.replay();
     assertThrown!ExpectationViolationException(r.verify());
@@ -771,13 +796,13 @@ unittest
 unittest
 {
     Mocker r = new Mocker();
-    auto o = r.mock!(Object);
-    o.toString;
+    auto cl = r.mock!(TestClass);
+    cl.test;
     r.lastCall().passThrough();
 
     r.replay();
-    string str = o.toString;
-    assert (str == "dmocks.object_mock.Mocked!(Object).Mocked", str);
+    string str = cl.test;
+    assert (str == "test", str);
 }
 
 @("class with constructor init check")
@@ -824,15 +849,15 @@ unittest
 unittest
 {
     Mocker r = new Mocker();
-    auto o = r.mock!(Object);
+    auto cl = r.mock!(TestClass);
     r.ordered;
-    r.expect(o.toHash).returns(5);
-    r.expect(o.toString).returns("mow!");
+    r.expect(cl.test1).returns("mew!");
+    r.expect(cl.test2).returns("mow!");
 
     r.replay();
     try {
-        o.toString;
-        o.toHash;
+        cl.test2;
+        cl.test1;
         assert (false);
     } catch (ExpectationViolationException) {}
 }
@@ -889,8 +914,8 @@ unittest
 {
     try {
         Mocker r = new Mocker();
-        auto o = r.mock!(Object);
-        r.allowing(o.toString);
+        auto cl = r.mock!(TestClass);
+        r.allowing(cl.test);
 
         r.replay();
         assert (false, "expected a mocks setup exception");
@@ -902,12 +927,12 @@ unittest
 unittest
 {
     Mocker r = new Mocker();
-    auto o = r.mock!(Object);
+    auto cl = r.mock!(TestClass);
     r.allowDefaults;
-    r.allowing(o.toString);
+    r.allowing(cl.test);
 
     r.replay();
-    assert (o.toString == (char[]).init);
+    assert (cl.test == (char[]).init);
 }
 
 // Going through the guts of Smthng
