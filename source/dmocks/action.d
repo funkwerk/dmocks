@@ -4,6 +4,7 @@ import dmocks.dynamic;
 import dmocks.util;
 import std.meta : AliasSeq;
 import std.traits;
+import std.typecons;
 
 package:
 
@@ -17,17 +18,24 @@ struct ReturnOrPass(T)
 {
     static if (!is(T == void))
     {
-        static if (is(typeof({ T value; })))
+        T value = void;
+
+        this(T value, Flag!"pass" pass, ActionStatus status = ActionStatus.Success)
         {
-            T value;
-        }
-        else
-        {
-            auto value = T.init;
+            this.value = value;
+            this.pass = pass;
+            this.status = status;
         }
     }
 
-    bool pass;
+    this(Flag!"pass" pass, ActionStatus status = ActionStatus.Success)
+    {
+        this.pass = pass;
+        this.status = status;
+    }
+
+    Flag!"pass" pass;
+
     ActionStatus status = ActionStatus.Success;
 }
 
@@ -37,15 +45,13 @@ struct Actor
 
     ReturnOrPass!(TReturn) act (TReturn, ArgTypes...) (ArgTypes args)
     {
-        import std.algorithm.mutation: moveEmplace;
-
         debugLog("Actor:act");
 
-        ReturnOrPass!(TReturn) rope;
+        alias Rope = ReturnOrPass!TReturn;
+
         if (self.passThrough)
         {
-            rope.pass = true;
-            return rope;
+            return Rope(Yes.pass);
         }
         if (self.toThrow)
         {
@@ -53,45 +59,42 @@ struct Actor
         }
         static if (is (TReturn == void))
         {
-            if (self.action !is null)
+            if (self.action is null)
             {
-                debugLog("action found, type: %s", self.action.type);
-                
-                if (self.action.type == typeid(void delegate(ArgTypes)))
-                {
-                    self.action.get!(void delegate(ArgTypes))()(args);
-                }
-                else
-                {
-                    rope.status = ActionStatus.FailBadAction;
-                }
+                return Rope(No.pass);
+            }
+            debugLog("action found, type: %s", self.action.type);
+
+            if (self.action.type == typeid(void delegate(ArgTypes)))
+            {
+                self.action.get!(void delegate(ArgTypes))()(args);
+                return Rope(No.pass);
+            }
+            else
+            {
+                return Rope(No.pass, ActionStatus.FailBadAction);
             }
         }
         else
         {
             if (self.returnValue !is null)
             {
-                auto value = self.returnValue.get!TReturn;
-
-                value.moveEmplace(rope.value);
+                return Rope(self.returnValue.get!TReturn, No.pass);
             }
             else if (self.action !is null)
             {
                 debugLog("action found, type: %s", self.action.type);
                 if (self.action.type == typeid(TReturn delegate(ArgTypes)))
                 {
-                    auto value = self.action.get!(TReturn delegate(ArgTypes))()(args);
-
-                    value.moveEmplace(rope.value);
+                    return Rope(self.action.get!(TReturn delegate(ArgTypes))()(args), No.pass);
                 }
                 else
                 {
-                    rope.status = ActionStatus.FailBadAction;
+                    return Rope(No.pass, ActionStatus.FailBadAction);
                 }
             }
+            return Rope(No.pass);
         }
-
-        return rope;
     }
 }
 
