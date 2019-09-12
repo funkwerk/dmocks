@@ -119,17 +119,13 @@ auto ref mockMethodCall(alias self, string name, T, OBJ, CALLER, FORWARD, Args..
     auto rope = ({
         static if (functionAttributes!(FunctionTypeOf!(self)) & FunctionAttribute.nothrow_)
         {
-            try {
-                return getRope();
-            }
-            catch (Exception ex)
-            {
-                assert(false, "Throwing in a mock of a nothrow method!");
-            }
+            import std.exception : assertNotThrown;
+
+            return assertNotThrown(getRope, "throwing in a mock of a nothrow method!");
         }
         else
         {
-            return getRope();
+            return getRope;
         }
     })();
     if (rope.pass)
