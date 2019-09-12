@@ -108,33 +108,30 @@ auto ref mockMethodCall(alias self, string name, T, OBJ, CALLER, FORWARD, Args..
     {
         assert(false, "owner cannot be null! Contact the stupid mocks developer.");
     }
-    dmocks.action.ReturnOrPass!(ReturnType!(FunctionTypeOf!(self))) rope;
-    void setRope()
+    auto getRope()
     {
-        import std.algorithm.mutation: moveEmplace;
-
         // CAST CHEATS here - can't operate on const/shared refs without cheating on typesystem.
         // this makes these calls threadunsafe
         // because of fullyQualifiedName bug we need to pass name to the function
-        auto value = (cast()_owner).MethodCall!(self, ParameterTypeTuple!self)
+        return (cast()_owner).MethodCall!(self, ParameterTypeTuple!self)
             (cast(MockId)(obj.mockId___), __traits(identifier, T) ~ "." ~ name, params);
-
-        (() @trusted { value.moveEmplace(rope); })();
     }
-    static if (functionAttributes!(FunctionTypeOf!(self)) & FunctionAttribute.nothrow_)
-    {
-        try {
-            setRope();
-        }
-        catch (Exception ex)
+    auto rope = ({
+        static if (functionAttributes!(FunctionTypeOf!(self)) & FunctionAttribute.nothrow_)
         {
-            assert(false, "Throwing in a mock of a nothrow method!");
+            try {
+                return getRope();
+            }
+            catch (Exception ex)
+            {
+                assert(false, "Throwing in a mock of a nothrow method!");
+            }
         }
-    }
-    else
-    {
-        setRope();
-    }
+        else
+        {
+            return getRope();
+        }
+    })();
     if (rope.pass)
     {
         return forwardCall(params, varArgsList, varArgsPtr);
