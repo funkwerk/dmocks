@@ -772,6 +772,19 @@ unittest
     assert (calledPayload);
 }
 
+@("delegate payload with mismatching parameters")
+unittest
+{
+    Mocker r = new Mocker();
+    auto o = r.mock!(SimpleObject);
+
+    //o.print;
+    r.expect(o.print).action((int) { });
+    r.replay();
+
+    assertThrown!Error(o.print);
+}
+
 @("exception payload")
 unittest
 {
