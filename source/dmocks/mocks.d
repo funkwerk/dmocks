@@ -192,9 +192,9 @@ public class Mocker
          *
          * Examples:
          * ---
-         * Mocker m = new Mocker;
-         * Object o = m.Mock!(Object);
-         * m.expect(o.toString).returns("hello?");
+         * Mocker mocker = new Mocker;
+         * Object obj = mocker.Mock!(Object);
+         * mocker.expect(obj.toString).returns("hello?");
          * ---
          */
         ExpectationSetup expect (T) (lazy T methodCall) {
@@ -222,10 +222,10 @@ public class Mocker
          *
          * Examples:
          * ---
-         * Mocker m = new Mocker;
-         * Object o = m.Mock!(Object);
-         * o.toString;
-         * m.LastCall().returns("hello?");
+         * Mocker mocker = new Mocker;
+         * Object obj = mocker.Mock!(Object);
+         * obj.toString;
+         * mocker.LastCall().returns("hello?");
          * ---
          */
         ExpectationSetup lastCall () {
@@ -266,10 +266,10 @@ public class Mocker
 
    Examples:
    ---
-   Mocker m = new Mocker;
-   Object o = m.Mock!(Object);
-   o.toString;
-   m.LastCall().returns("Are you still there?").repeat(1, 12);
+   Mocker mocker = new Mocker;
+   Object obj = mocker.Mock!(Object);
+   obj.toString;
+   mocker.LastCall().returns("Are you still there?").repeat(1, 12);
    ---
 ++/
 public class ExpectationSetup 
@@ -347,7 +347,7 @@ public class ExpectationSetup
     * The called method will return whatever the given delegate returns.
     * Examples:
     * ---
-    * m.expect(myObj.myFunc(0, null, null, 'a')
+    * mocker.expect(myObj.myFunc(0, null, null, 'a')
     *     .ignoreArgs()
     *     .action((int i, char[] s, Object o, char c) { return -1; });
     * ---
@@ -671,25 +671,26 @@ unittest
 @("execute mock method")
 unittest
 {
-    auto r = new Mocker();
-    auto o = r.mock!(Object);
-    o.toString();
+    auto mocker = new Mocker();
+    auto obj = mocker.mock!(Object);
+
+    obj.toString();
 }
 
 @("constructor argument")
 unittest
 {
-    auto r = new Mocker();
-    auto o = r.mock!(ConstructorArg)(4);
+    auto mocker = new Mocker();
+    auto obj = mocker.mock!(ConstructorArg)(4);
 }
 
 @("lastCall")
 unittest
 {
-    Mocker m = new Mocker();
-    SimpleObject o = m.mock!(SimpleObject);
-    o.print;
-    auto e = m.lastCall;
+    Mocker mocker = new Mocker();
+    SimpleObject obj = mocker.mock!(SimpleObject);
+    obj.print;
+    auto e = mocker.lastCall;
 
     assert (e !is null);
 }
@@ -704,10 +705,10 @@ class TestClass
 @("return a value")
 unittest
 {
-    Mocker m = new Mocker();
-    TestClass cl = m.mock!(TestClass);
+    Mocker mocker = new Mocker();
+    TestClass cl = mocker.mock!(TestClass);
     cl.test;
-    auto e = m.lastCall;
+    auto e = mocker.lastCall;
 
     assert (e !is null);
     e.returns("frobnitz");
@@ -716,30 +717,30 @@ unittest
 @("unexpected call")
 unittest
 {
-    Mocker m = new Mocker();
-    TestClass cl = m.mock!(TestClass);
-    m.replay();
+    Mocker mocker = new Mocker();
+    TestClass cl = mocker.mock!(TestClass);
+    mocker.replay();
     assertThrown!ExpectationViolationException(cl.test);
 }
 
 @("expect")
 unittest
 {
-    Mocker m = new Mocker();
-    TestClass cl = m.mock!(TestClass);
-    m.expect(cl.test).repeat(0).returns("mrow?");
-    m.replay();
+    Mocker mocker = new Mocker();
+    TestClass cl = mocker.mock!(TestClass);
+    mocker.expect(cl.test).repeat(0).returns("mrow?");
+    mocker.replay();
     assertThrown(cl.test);
 }
 
 @("repeat single")
 unittest
 {
-    Mocker m = new Mocker();
-    TestClass cl = m.mock!(TestClass);
-    m.expect(cl.test).repeat(2).returns("foom?");
+    Mocker mocker = new Mocker();
+    TestClass cl = mocker.mock!(TestClass);
+    mocker.expect(cl.test).repeat(2).returns("foom?");
 
-    m.replay();
+    mocker.replay();
 
     cl.test;
     cl.test;
@@ -749,42 +750,56 @@ unittest
 @("repository match counts")
 unittest
 {
-    auto r = new Mocker();
-    auto cl = r.mock!(TestClass);
+    auto mocker = new Mocker();
+    auto cl = mocker.mock!(TestClass);
+
     cl.test;
-    r.lastCall().repeat(2, 2).returns("mew.");
-    r.replay();
-    assertThrown!ExpectationViolationException(r.verify());
+    mocker.lastCall().repeat(2, 2).returns("mew.");
+    mocker.replay();
+    assertThrown!ExpectationViolationException(mocker.verify());
 }
 
 @("delegate payload")
 unittest
 {
     bool calledPayload = false;
-    Mocker r = new Mocker();
-    auto o = r.mock!(SimpleObject);
+    auto mocker = new Mocker();
+    auto obj = mocker.mock!(SimpleObject);
+
+    //obj.print;
+    mocker.expect(obj.print).action({ calledPayload = true; });
+    mocker.replay();
+
+    obj.print;
+    assert(calledPayload);
+}
+
+@("delegate payload with mismatching parameters")
+unittest
+{
+    auto mocker = new Mocker();
+    auto obj = mocker.mock!(SimpleObject);
 
     //o.print;
-    r.expect(o.print).action({ calledPayload = true; });
-    r.replay();
+    mocker.expect(obj.print).action((int) { });
+    mocker.replay();
 
-    o.print;
-    assert (calledPayload);
+    assertThrown!Error(obj.print);
 }
 
 @("exception payload")
 unittest
 {
-    Mocker r = new Mocker();
-    auto o = r.mock!(SimpleObject);
+    Mocker mocker = new Mocker();
+    auto obj = mocker.mock!(SimpleObject);
 
     string msg = "divide by cucumber error";
-    o.print;
-    r.lastCall().throws(new Exception(msg));
-    r.replay();
+    obj.print;
+    mocker.lastCall().throws(new Exception(msg));
+    mocker.replay();
 
     try {
-        o.print;
+        obj.print;
         assert (false, "expected exception not thrown");
     } catch (Exception e) {
         // Careful -- assertion errors derive from Exception
@@ -795,12 +810,12 @@ unittest
 @("passthrough")
 unittest
 {
-    Mocker r = new Mocker();
-    auto cl = r.mock!(TestClass);
+    Mocker mocker = new Mocker();
+    auto cl = mocker.mock!(TestClass);
     cl.test;
-    r.lastCall().passThrough();
+    mocker.lastCall().passThrough();
 
-    r.replay();
+    mocker.replay();
     string str = cl.test;
     assert (str == "test", str);
 }
@@ -808,53 +823,53 @@ unittest
 @("class with constructor init check")
 unittest
 {
-    auto r = new Mocker();
-    auto o = r.mock!(ConstructorArg)(4);
-    o.getA();
-    r.lastCall().passThrough();
-    r.replay();
-    assert (4 == o.getA());
+    auto mocker = new Mocker();
+    auto obj = mocker.mock!(ConstructorArg)(4);
+    obj.getA();
+    mocker.lastCall().passThrough();
+    mocker.replay();
+    assert (4 == obj.getA());
 }
 
 @("associative arrays")
 unittest
 {
-    Mocker r = new Mocker();
-    auto o = r.mock!(Object);
-    r.expect(o.toHash()).passThrough().repeatAny;
-    r.expect(o.opEquals(null)).ignoreArgs().passThrough().repeatAny;
+    Mocker mocker = new Mocker();
+    auto obj = mocker.mock!(Object);
+    mocker.expect(obj.toHash()).passThrough().repeatAny;
+    mocker.expect(obj.opEquals(null)).ignoreArgs().passThrough().repeatAny;
 
-    r.replay();
+    mocker.replay();
     int[Object] i;
-    i[o] = 5;
-    int j = i[o];
+    i[obj] = 5;
+    int j = i[obj];
 }
 
 @("ordering in order")
 unittest
 {
-    Mocker r = new Mocker();
-    auto o = r.mock!(Object);
-    r.ordered;
-    r.expect(o.toHash).returns(cast(hash_t)5);
-    r.expect(o.toString).returns("mow!");
+    Mocker mocker = new Mocker();
+    auto obj = mocker.mock!(Object);
+    mocker.ordered;
+    mocker.expect(obj.toHash).returns(cast(hash_t)5);
+    mocker.expect(obj.toString).returns("mow!");
 
-    r.replay();
-    o.toHash;
-    o.toString;
-    r.verify;
+    mocker.replay();
+    obj.toHash;
+    obj.toString;
+    mocker.verify;
 }
 
 @("ordering not in order")
 unittest
 {
-    Mocker r = new Mocker();
-    auto cl = r.mock!(TestClass);
-    r.ordered;
-    r.expect(cl.test1).returns("mew!");
-    r.expect(cl.test2).returns("mow!");
+    Mocker mocker = new Mocker();
+    auto cl = mocker.mock!(TestClass);
+    mocker.ordered;
+    mocker.expect(cl.test1).returns("mew!");
+    mocker.expect(cl.test2).returns("mow!");
 
-    r.replay();
+    mocker.replay();
     try {
         cl.test2;
         cl.test1;
@@ -865,59 +880,59 @@ unittest
 @("ordering interposed")
 unittest
 {
-    Mocker r = new Mocker();
-    auto o = r.mock!(SimpleObject);
-    r.ordered;
-    r.expect(o.toHash).returns(cast(hash_t)5);
-    r.expect(o.toString).returns("mow!");
-    r.unordered;
-    o.print;
+    Mocker mocker = new Mocker();
+    auto obj = mocker.mock!(SimpleObject);
+    mocker.ordered;
+    mocker.expect(obj.toHash).returns(cast(hash_t)5);
+    mocker.expect(obj.toString).returns("mow!");
+    mocker.unordered;
+    obj.print;
 
-    r.replay();
-    o.toHash;
-    o.print;
-    o.toString;
+    mocker.replay();
+    obj.toHash;
+    obj.print;
+    obj.toString;
 }
 
 @("allow unexpected")
 unittest
 {
-    Mocker r = new Mocker();
-    auto o = r.mock!(Object);
-    r.ordered;
-    r.allowUnexpectedCalls(true);
-    r.expect(o.toString).returns("mow!");
-    r.replay();
-    o.toHash; // unexpected tohash calls
-    o.toString;
-    o.toHash;
-    assertThrown!ExpectationViolationException(r.verify(false, true));
-    r.verify(true, false);
+    Mocker mocker = new Mocker();
+    auto obj = mocker.mock!(Object);
+    mocker.ordered;
+    mocker.allowUnexpectedCalls(true);
+    mocker.expect(obj.toString).returns("mow!");
+    mocker.replay();
+    obj.toHash; // unexpected tohash calls
+    obj.toString;
+    obj.toHash;
+    assertThrown!ExpectationViolationException(mocker.verify(false, true));
+    mocker.verify(true, false);
 }
 
 @("allowing")
 unittest
 {
-    Mocker r = new Mocker();
-    auto o = r.mock!(Object);
-    r.allowing(o.toString).returns("foom?");
+    Mocker mocker = new Mocker();
+    auto obj = mocker.mock!(Object);
+    mocker.allowing(obj.toString).returns("foom?");
 
-    r.replay();
-    o.toString;
-    o.toString;
-    o.toString;
-    r.verify;
+    mocker.replay();
+    obj.toString;
+    obj.toString;
+    obj.toString;
+    mocker.verify;
 }
 
 @("nothing for method to do")
 unittest
 {
     try {
-        Mocker r = new Mocker();
-        auto cl = r.mock!(TestClass);
-        r.allowing(cl.test);
+        Mocker mocker = new Mocker();
+        auto cl = mocker.mock!(TestClass);
+        mocker.allowing(cl.test);
 
-        r.replay();
+        mocker.replay();
         assert (false, "expected a mocks setup exception");
     } catch (MocksSetupException e) {
     }
@@ -926,12 +941,12 @@ unittest
 @("allow defaults test")
 unittest
 {
-    Mocker r = new Mocker();
-    auto cl = r.mock!(TestClass);
-    r.allowDefaults;
-    r.allowing(cl.test);
+    Mocker mocker = new Mocker();
+    auto cl = mocker.mock!(TestClass);
+    mocker.allowDefaults;
+    mocker.allowing(cl.test);
 
-    r.replay();
+    mocker.replay();
     assert (cl.test == (char[]).init);
 }
 
@@ -950,122 +965,122 @@ unittest
 @("mock interface")
 unittest
 {
-    auto r = new Mocker;
-    IFace o = r.mock!(IFace);
+    auto mocker = new Mocker;
+    IFace obj = mocker.mock!(IFace);
     debugLog("about to call once...");
-    o.foo("hallo");
-    r.replay;
+    obj.foo("hallo");
+    mocker.replay;
     debugLog("about to call twice...");
-    o.foo("hallo");
-    r.verify;
+    obj.foo("hallo");
+    mocker.verify;
 }
 
 @("cast mock to interface")
 unittest
 {
-    auto r = new Mocker;
-    IFace o = r.mock!(Smthng);
+    auto mocker = new Mocker;
+    IFace obj = mocker.mock!(Smthng);
     debugLog("about to call once...");
-    o.foo("hallo");
-    r.replay;
+    obj.foo("hallo");
+    mocker.replay;
     debugLog("about to call twice...");
-    o.foo("hallo");
-    r.verify;
+    obj.foo("hallo");
+    mocker.verify;
 }
 
 @("cast mock to interface")
 unittest
 {
-    auto r = new Mocker;
-    IFace o = r.mock!(Smthng);
+    auto mocker = new Mocker;
+    IFace obj = mocker.mock!(Smthng);
     debugLog("about to call once...");
-    o.foo("hallo");
-    r.replay;
+    obj.foo("hallo");
+    mocker.replay;
     debugLog("about to call twice...");
-    o.foo("hallo");
-    r.verify;
+    obj.foo("hallo");
+    mocker.verify;
 }
 
 @("return user-defined type")
 unittest
 {
-    auto r = new Mocker;
-    auto o = r.mock!(IRM);
-    auto im = r.mock!(IM);
+    auto mocker = new Mocker;
+    auto obj = mocker.mock!(IRM);
+    auto im = mocker.mock!(IM);
     debugLog("about to call once...");
-    r.expect(o.get).returns(im);
-    o.set(im);
-    r.replay;
+    mocker.expect(obj.get).returns(im);
+    obj.set(im);
+    mocker.replay;
     debugLog("about to call twice...");
-    assert (o.get is im, "returned the wrong value");
-    o.set(im);
-    r.verify;
+    assert (obj.get is im, "returned the wrong value");
+    obj.set(im);
+    mocker.verify;
 }
 
 @("return user-defined type")
 unittest
 {
-    auto r = new Mocker;
-    auto o = r.mock!(HasMember);    	
+    auto mocker = new Mocker;
+    auto obj = mocker.mock!(HasMember);
 }
 
 @("overloaded method")
 unittest
 {
-    auto r = new Mocker;
-    auto o = r.mock!(Overloads);  
-    o.foo();
-    o.foo(1);
-    r.replay;
-    o.foo(1);
-    o.foo;
-    r.verify;
+    auto mocker = new Mocker;
+    auto obj = mocker.mock!(Overloads);
+    obj.foo();
+    obj.foo(1);
+    mocker.replay;
+    obj.foo(1);
+    obj.foo;
+    mocker.verify;
 }
 
 @("overloaded method qualifiers")
 unittest
 {
     {
-        auto r = new Mocker;
-        auto s = r.mock!(shared(Qualifiers));
+        auto mocker = new Mocker;
+        auto s = mocker.mock!(shared(Qualifiers));
         auto sc = cast(shared const) s;
 
-        r.expect(s.make).passThrough;
-        r.expect(sc.make).passThrough; 
-        r.replay;
+        mocker.expect(s.make).passThrough;
+        mocker.expect(sc.make).passThrough;
+        mocker.replay;
 
         assert(s.make == 0);
         assert(sc.make == 2);
 
-        r.verify;
+        mocker.verify;
     }
     {
-        auto r = new Mocker;
-        auto m = r.mock!(Qualifiers);
+        auto mocker = new Mocker;
+        auto m = mocker.mock!(Qualifiers);
         auto c = cast(const) m;
         auto i = cast(immutable) m;
 
-        r.expect(i.make).passThrough;
-        r.expect(m.make).passThrough; 
-        r.expect(c.make).passThrough; 
-        r.replay;
+        mocker.expect(i.make).passThrough;
+        mocker.expect(m.make).passThrough;
+        mocker.expect(c.make).passThrough;
+        mocker.replay;
 
         assert(i.make == 4);
         assert(m.make == 3);
         assert(c.make == 1);
 
-        r.verify;
+        mocker.verify;
     }
     {
-        auto r = new Mocker;
-        auto m = r.mock!(Qualifiers);
+        auto mocker = new Mocker;
+        auto m = mocker.mock!(Qualifiers);
         auto c = cast(const) m;
         auto i = cast(immutable) m;
 
-        r.expect(i.make).passThrough;
-        r.expect(m.make).passThrough; 
-        r.expect(m.make).passThrough; 
-        r.replay;
+        mocker.expect(i.make).passThrough;
+        mocker.expect(m.make).passThrough;
+        mocker.expect(m.make).passThrough;
+        mocker.replay;
 
         assert(i.make == 4);
         assert(m.make == 3);
@@ -1085,116 +1100,116 @@ unittest
 {
     import std.exception;
 
-    auto r = new Mocker;
-    auto o = r.mockFinal!(VirtualFinal);  
-    r.expect(o.makeVir()).returns(5);
-    r.replay;
-    assert(o.makeVir == 5);
+    auto mocker = new Mocker;
+    auto obj = mocker.mockFinal!(VirtualFinal);
+    mocker.expect(obj.makeVir()).returns(5);
+    mocker.replay;
+    assert(obj.makeVir == 5);
 }
 
 @("final mock of abstract methods")
 unittest
 {
-    auto r = new Mocker;
-    auto o = r.mockFinal!(MakeAbstract)(6);
-    r.expect(o.concrete()).passThrough;
-    r.replay;
-    assert(o.concrete == 6);
-    r.verify;
+    auto mocker = new Mocker;
+    auto obj = mocker.mockFinal!(MakeAbstract)(6);
+    mocker.expect(obj.concrete()).passThrough;
+    mocker.replay;
+    assert(obj.concrete == 6);
+    mocker.verify;
 }
 
 @("final methods")
 unittest
 {
-    auto r = new Mocker;
-    auto o = r.mockFinal!(FinalMethods);  
-    r.expect(o.make()).passThrough;
-    r.expect(o.make(1)).passThrough; 
-    r.replay;
+    auto mocker = new Mocker;
+    auto obj = mocker.mockFinal!(FinalMethods);
+    mocker.expect(obj.make()).passThrough;
+    mocker.expect(obj.make(1)).passThrough;
+    mocker.replay;
     static assert(!is(typeof(o)==FinalMethods));
-    assert(o.make == 0);
-    assert(o.make(1) == 2);
-    r.verify;
+    assert(obj.make == 0);
+    assert(obj.make(1) == 2);
+    mocker.verify;
 }
 
 @("final class")
 unittest
 {
-    auto r = new Mocker;
-    auto o = r.mockFinal!(FinalClass);  
-    r.expect(o.fortyTwo()).passThrough;
-    r.replay;
-    assert(o.fortyTwo == 42);
-    r.verify;
+    auto mocker = new Mocker;
+    auto obj = mocker.mockFinal!(FinalClass);
+    mocker.expect(obj.fortyTwo()).passThrough;
+    mocker.replay;
+    assert(obj.fortyTwo == 42);
+    mocker.verify;
 }
 
 @("final class with no underlying object")
 unittest
 {
-    auto r = new Mocker;
-    auto o = r.mockFinalPassTo!(FinalClass)(null);  
-    r.expect(o.fortyTwo()).returns(43);
-    r.replay;
-    assert(o.fortyTwo == 43);
-    r.verify;
+    auto mocker = new Mocker;
+    auto obj = mocker.mockFinalPassTo!(FinalClass)(null);
+    mocker.expect(obj.fortyTwo()).returns(43);
+    mocker.replay;
+    assert(obj.fortyTwo == 43);
+    mocker.verify;
 }
 
 @("template methods")
 unittest
 {
-    auto r = new Mocker;
-    auto o = r.mockFinal!(TemplateMethods);  
-    r.expect(o.get(1)).passThrough;
-    r.expect(o.getSomethings(1, 2, 3)).passThrough;
-    r.replay;
-    assert(o.get(1) == "int");
+    auto mocker = new Mocker;
+    auto obj = mocker.mockFinal!(TemplateMethods);
+    mocker.expect(obj.get(1)).passThrough;
+    mocker.expect(obj.getSomethings(1, 2, 3)).passThrough;
+    mocker.replay;
+    assert(obj.get(1) == "int");
     auto tm = new TemplateMethods();
-    assert(o.getSomethings(1, 2, 3) == 3);
-    r.verify;
+    assert(obj.getSomethings(1, 2, 3) == 3);
+    mocker.verify;
 }
 
 @("struct")
 unittest
 {
-    auto r = new Mocker;
-    auto o = r.mockStruct!(Struct);  
-    r.expect(o.get).passThrough;
-    r.replay;
-    assert(o.get() == 1);
-    r.verify;
+    auto mocker = new Mocker;
+    auto obj = mocker.mockStruct!(Struct);
+    mocker.expect(obj.get).passThrough;
+    mocker.replay;
+    assert(obj.get() == 1);
+    mocker.verify;
 }
 
 @("struct with fields")
 unittest
 {
-    auto r = new Mocker;
-    auto o = r.mockStruct!(StructWithFields)(5);  
-    r.expect(o.get).passThrough;
-    r.replay;
-    assert(o.get() == 5);
-    r.verify;
+    auto mocker = new Mocker;
+    auto obj = mocker.mockStruct!(StructWithFields)(5);
+    mocker.expect(obj.get).passThrough;
+    mocker.replay;
+    assert(obj.get() == 5);
+    mocker.verify;
 }
 
 @("struct with fields")
 unittest
 {
-    auto r = new Mocker;
-    auto o = r.mockStruct!(StructWithConstructor)(5);  
-    r.expect(o.get).passThrough;
-    r.replay;
-    assert(o.get() == 5);
-    r.verify;
+    auto mocker = new Mocker;
+    auto obj = mocker.mockStruct!(StructWithConstructor)(5);
+    mocker.expect(obj.get).passThrough;
+    mocker.replay;
+    assert(obj.get() == 5);
+    mocker.verify;
 }
 
 @("struct with no underlying object")
 unittest
 {
-    auto r = new Mocker;
-    auto o = r.mockStructPassTo(StructWithConstructor.init);  
-    r.expect(o.get).returns(6);
-    r.replay;
-    assert(o.get() == 6);
-    r.verify;
+    auto mocker = new Mocker;
+    auto obj = mocker.mockStructPassTo(StructWithConstructor.init);
+    mocker.expect(obj.get).returns(6);
+    mocker.replay;
+    assert(obj.get() == 6);
+    mocker.verify;
 }
 
 @("returning different values on the same expectation")

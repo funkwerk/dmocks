@@ -8,35 +8,25 @@ import std.typecons;
 
 package:
 
-enum ActionStatus
-{
-    Success,
-    FailBadAction,
-}
-
 struct ReturnOrPass(T)
 {
     static if (!is(T == void))
     {
         T value = void;
 
-        this(T value, Flag!"pass" pass, ActionStatus status = ActionStatus.Success)
+        this(T value, Flag!"pass" pass)
         {
             this.value = value;
             this.pass = pass;
-            this.status = status;
         }
     }
 
-    this(Flag!"pass" pass, ActionStatus status = ActionStatus.Success)
+    this(Flag!"pass" pass)
     {
         this.pass = pass;
-        this.status = status;
     }
 
     Flag!"pass" pass;
-
-    ActionStatus status = ActionStatus.Success;
 }
 
 struct Actor 
@@ -72,7 +62,10 @@ struct Actor
             }
             else
             {
-                return Rope(No.pass, ActionStatus.FailBadAction);
+                import std.format : format;
+
+                throw new Error(format!"cannot call action: type %s does not match argument type %s"
+                    (self.action.type, ArgTypes.stringof));
             }
         }
         else
@@ -90,7 +83,10 @@ struct Actor
                 }
                 else
                 {
-                    return Rope(No.pass, ActionStatus.FailBadAction);
+                    import std.format : format;
+
+                    throw new Error(format!"cannot call action: type %s does not match argument type %s"
+                        (self.action.type, ArgTypes.stringof));
                 }
             }
             return Rope(No.pass);

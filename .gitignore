@@ -22,3 +22,6 @@ dub.selections.json
 /dmocks
 /dmocks-test-library
 /examples/basic/basic*
+
+# Coverage
+*.lst
