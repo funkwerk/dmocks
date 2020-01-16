@@ -50,7 +50,7 @@ class CallExpectation : Expectation
         if (details)
         {
             apndr.put("\n" ~ indentation ~ "Calls: " ~ _matchedCalls.length.to!string);
-            foreach(Call call; _matchedCalls)
+            foreach (Call call; _matchedCalls)
             {
                 apndr.put("\n" ~ indentation ~ "  " ~ call.toString());
             }
@@ -117,7 +117,7 @@ class GroupExpectation : Expectation
     CallExpectation match(Call call)
     {
         // match call to expectation
-        foreach(Expectation expectation; expectations)
+        foreach (Expectation expectation; expectations)
         {
             CallExpectation e = expectation.match(call);
             if (e !is null)
@@ -135,7 +135,7 @@ class GroupExpectation : Expectation
 
     bool satisfied()
     {
-        foreach(Expectation expectation; expectations)
+        foreach (Expectation expectation; expectations)
         {
             if (!expectation.satisfied())
                 return false;
@@ -165,7 +165,7 @@ class GroupExpectation : Expectation
 
         if (details)
         {
-            foreach(Expectation expectation; expectations)
+            foreach (Expectation expectation; expectations)
             {
                 apndr.put("\n");
                 apndr.put(expectation.toString(indentation ~ "  "));

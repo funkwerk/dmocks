@@ -46,7 +46,7 @@ class ArgumentsTypeMatch : ArgumentsMatch
         if (args.length != _arguments.length)
             return false;
 
-        foreach(e; zip(_arguments, args))
+        foreach (e; zip(_arguments, args))
         {
             if (e[0].type != e[1].type)
                 return false;
@@ -72,7 +72,7 @@ interface IArguments
 auto arguments(ARGS...)(ARGS args)
 {
     Dynamic[] res = new Dynamic[](ARGS.length);
-    foreach(i, arg; args)
+    foreach (i, arg; args)
     {
         res[i] = dynamic(arg);
     }

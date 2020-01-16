@@ -161,7 +161,7 @@ class DynamicT(T) : Dynamic
             }
         }
 
-        foreach(Target; ImplicitConversionTargets!T)
+        foreach (Target; ImplicitConversionTargets!T)
         {
             if (typeid(Target) == to)
             {
