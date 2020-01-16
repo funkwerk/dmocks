@@ -58,7 +58,7 @@ class ArgumentsTypeMatch : ArgumentsMatch
 
     override string toString()
     {
-        return "("~_arguments.map!(a=>a.type.toString).join(", ")~")";
+        return "("~_arguments.map!(a=>a.typename).join(", ")~")";
     }
 }
 
@@ -81,7 +81,7 @@ auto arguments(ARGS...)(ARGS args)
 
 auto formatArguments(Dynamic[] _arguments)
 {
-    return "(" ~ _arguments.map!(a=>a.type.toString ~ " " ~ a.toString()).join(", ") ~")";
+    return "(" ~ _arguments.map!(a=>a.typename ~ " " ~ a.toString()).join(", ") ~")";
 }
 
 @("argument equality")
