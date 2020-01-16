@@ -137,7 +137,7 @@ class Action
         import std.format : format;
 
         enforce(
-            dynamic.canConvertTo(this._returnType),
+            dynamic.type == this._returnType || dynamic.canConvertTo(this._returnType),
             format!"Cannot set return value to '%s': expected '%s'"(dynamic.typename, this._returnType));
 
         this._returnValue = dynamic;
