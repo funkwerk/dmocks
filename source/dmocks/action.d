@@ -53,7 +53,7 @@ struct Actor
             {
                 return Rope(No.pass);
             }
-            debugLog("action found, type: %s", self.action.type);
+            debugLog("action found, type: %s", self.action.typename);
 
             if (self.action.type == typeid(void delegate(ArgTypes)))
             {
@@ -65,7 +65,7 @@ struct Actor
                 import std.format : format;
 
                 throw new Error(format!"cannot call action: type %s does not match argument type %s"
-                    (self.action.type, ArgTypes.stringof));
+                    (self.action.typename, ArgTypes.stringof));
             }
         }
         else
@@ -76,7 +76,7 @@ struct Actor
             }
             else if (self.action !is null)
             {
-                debugLog("action found, type: %s", self.action.type);
+                debugLog("action found, type: %s", self.action.typename);
                 if (self.action.type == typeid(TReturn delegate(ArgTypes)))
                 {
                     return Rope(self.action.get!(TReturn delegate(ArgTypes))()(args), No.pass);
@@ -86,7 +86,7 @@ struct Actor
                     import std.format : format;
 
                     throw new Error(format!"cannot call action: type %s does not match argument type %s"
-                        (self.action.type, ArgTypes.stringof));
+                        (self.action.typename, ArgTypes.stringof));
                 }
             }
             return Rope(No.pass);
@@ -137,8 +137,8 @@ class Action
         import std.format : format;
 
         enforce(
-            dynamic.canConvertTo(this._returnType),
-            format!"Cannot set return value to '%s': expected '%s'"(dynamic.type, this._returnType));
+            dynamic.type == this._returnType || dynamic.canConvertTo(this._returnType),
+            format!"Cannot set return value to '%s': expected '%s'"(dynamic.typename, this._returnType));
 
         this._returnValue = dynamic;
     }

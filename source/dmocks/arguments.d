@@ -46,7 +46,7 @@ class ArgumentsTypeMatch : ArgumentsMatch
         if (args.length != _arguments.length)
             return false;
 
-        foreach(e; zip(_arguments, args))
+        foreach (e; zip(_arguments, args))
         {
             if (e[0].type != e[1].type)
                 return false;
@@ -58,7 +58,7 @@ class ArgumentsTypeMatch : ArgumentsMatch
 
     override string toString()
     {
-        return "("~_arguments.map!(a=>a.type.toString).join(", ")~")";
+        return "("~_arguments.map!(a=>a.typename).join(", ")~")";
     }
 }
 
@@ -72,7 +72,7 @@ interface IArguments
 auto arguments(ARGS...)(ARGS args)
 {
     Dynamic[] res = new Dynamic[](ARGS.length);
-    foreach(i, arg; args)
+    foreach (i, arg; args)
     {
         res[i] = dynamic(arg);
     }
@@ -81,7 +81,7 @@ auto arguments(ARGS...)(ARGS args)
 
 auto formatArguments(Dynamic[] _arguments)
 {
-    return "(" ~ _arguments.map!(a=>a.type.toString ~ " " ~ a.toString()).join(", ") ~")";
+    return "(" ~ _arguments.map!(a=>a.typename ~ " " ~ a.toString()).join(", ") ~")";
 }
 
 @("argument equality")

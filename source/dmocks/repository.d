@@ -195,7 +195,7 @@ class MockRepository
         import std.array;
         auto apndr = appender!(string);
         apndr.put("Unexpected calls(calls):\n");
-        foreach(Call ev; _unexpectedCalls)
+        foreach (Call ev; _unexpectedCalls)
         {
             apndr.put(ev.toString());
             apndr.put("\n");

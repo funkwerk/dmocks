@@ -13,8 +13,10 @@ abstract class Dynamic
 
     /// returns stored typeinfo
     abstract TypeInfo type();
+    /// returns stored typename (work around dmd bug https://issues.dlang.org/show_bug.cgi?id=3831)
+    abstract string typename();
     /// converts stored value to given "to" type and returns 1el array of target type vals. conversion must be defined.
-    abstract void[] convertTo(TypeInfo to);
+    abstract const(void)[] convertTo(TypeInfo to);
     /// checks if stored value can be converted to given "to" type.
     abstract bool canConvertTo(TypeInfo to);
 }
@@ -28,9 +30,11 @@ T get(T)(Dynamic d)
     if (d.type == typeid(T))
         return ((cast(DynamicT!T)d).data());
 
-    enforce(d.canConvertTo(typeid(T)), format!"Cannot convert stored value of type '%s' to '%s'!"(d.type, T.stringof));
+    enforce(
+        d.canConvertTo(typeid(T)),
+        format!"Cannot convert stored value of type '%s' to '%s'!"(d.typename, T.stringof));
 
-    void[] convertResult = d.convertTo(typeid(T));
+    const(void)[] convertResult = d.convertTo(typeid(T));
 
     return (cast(T*)convertResult.ptr)[0];
 }
@@ -53,6 +57,12 @@ class DynamicT(T) : Dynamic
     override TypeInfo type()
     {
         return typeid(T);
+    }
+
+    ///
+    override string typename()
+    {
+        return T.stringof;
     }
 
     ///
@@ -113,18 +123,19 @@ class DynamicT(T) : Dynamic
 
         static if (ConversionTargets.length)
         {
-            return type == to || [staticMap!(getTypeId, ConversionTargets)].any!(t => t == to);
+            return [staticMap!(getTypeId, ConversionTargets)].any!(t => t == to);
         }
         else
         {
-            return type == to;
+            return false;
         }
     }
 
     ///
-    override void[] convertTo(TypeInfo to)
+    override const(void)[] convertTo(TypeInfo to)
     {
         import std.format : format;
+        import std.meta : AliasSeq;
 
         static if (is(T == typeof(null)))
         {
@@ -143,20 +154,18 @@ class DynamicT(T) : Dynamic
                 mixin(format!q{
                     if (cast(%s) to)
                     {
-                        auto ret = new %s[1];
-                        ret[0] = null;
+                        %s[] ret = [null];
                         return ret;
                     }
                 }(pair[0], pair[1]));
             }
         }
 
-        foreach(Target; ImplicitConversionTargets!(T))
+        foreach (Target; ImplicitConversionTargets!T)
         {
             if (typeid(Target) == to)
             {
-                auto ret = new Target[1];
-                ret[0] = cast(Target) _data;
+                Target[] ret = [_data];
                 return ret;
             }
         }
@@ -190,10 +199,16 @@ unittest
 {
     auto d = dynamic(6);
     assert(d.toString == "6");
-    assert(d.type.toString == "int");
+    assert(d.typename == "int");
     auto e = dynamic(6);
     assert(e == d);
     assert(e.get!int == 6);
+}
+
+unittest
+{
+    auto d = dynamic((void delegate(int)).init);
+    assert(d.typename == "void delegate(int)");
 }
 
 unittest

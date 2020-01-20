@@ -12,11 +12,11 @@ QualifierMatch qualifierMatch(alias T)()
 {
     auto q = QualifierMatch();
     auto quals = qualifiers!T;
-    foreach(string name; quals)
+    foreach (string name; quals)
     {
         q._qualifiers[name] = true;
     }
-    foreach(string name; validQualifiers.filter!(a=>a !in q._qualifiers))
+    foreach (string name; validQualifiers.filter!(a=>a !in q._qualifiers))
     {
         q._qualifiers[name] = false;
     }
@@ -155,7 +155,7 @@ public void enforceQualifierNames(string[] qualifiers)
     enforce!(MocksSetupException)(qualifiers.uniq.array == qualifiers,"Qualifiers: given qualifiers are not unique: " ~ qualifiers.join(" "));
 
     // bad perf, but data is small
-    foreach(string q; qualifiers)
+    foreach (string q; qualifiers)
     {
         enforce!(MocksSetupException)(validQualifiers.canFind(q), "Qualifiers: found invalid qualifier: " ~ q);
     }
@@ -230,7 +230,7 @@ struct QualifierMatch
     {
         debugLog("QualifierMatch: match against: "~ against.join(" "));
         debugLog("state: " ~ toString());
-        foreach(string searched; against)
+        foreach (string searched; against)
         {
             const(bool)* found =  searched in _qualifiers;
             if (found is null)
@@ -239,7 +239,7 @@ struct QualifierMatch
                 return false;
         }
 
-        foreach(string key, const(bool) val; _qualifiers)
+        foreach (string key, const(bool) val; _qualifiers)
         {
             if (!val)
                 continue;
