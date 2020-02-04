@@ -695,7 +695,7 @@ unittest
     assert (e !is null);
 }
 
-class TestClass
+private class TestClass
 {
     string test() { return "test"; }
     string test1() { return "test 1"; }
