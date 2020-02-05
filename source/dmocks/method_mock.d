@@ -40,7 +40,7 @@ string BuildMethodOverloads (string objectType, string methodName, int overloadI
     enum returns = !is (ReturnType!(METHOD_TYPE) == void);
 
     enum self = `__traits(getOverloads, T, "` ~ methodName ~ `")[` ~ overloadIndex.to!string ~ `]`;
-    enum selfType = "FunctionTypeOf!("~self~")";
+    enum selfType = "FunctionTypeOf!(" ~ self ~ ")";
     enum ret = returns ? `ReturnType!(` ~ selfType ~ `)` : `void`;
     enum paramTypes = `ParameterTypeTuple!(` ~ selfType ~ `)`;
     enum dynVarArgs = variadicFunctionStyle!method == Variadic.d;
@@ -48,29 +48,32 @@ string BuildMethodOverloads (string objectType, string methodName, int overloadI
     enum qualified = objectType ~ `.` ~ methodName;
     enum bool override_ = is(typeof(mixin (`Object.` ~ methodName))) && !__traits(isFinalFunction, method);
     enum header = ((inheritance || override_) ? `override ` : `final `) ~ ret ~ ` ` ~ methodName ~ `
-        (` ~ paramTypes ~ ` params`~ varargsString ~`) ` ~ formatQualifiers!(method);
+        (` ~ paramTypes ~ ` params` ~ varargsString ~ `) ` ~ formatQualifiers!(method);
 
-    string delegate_ = `delegate `~ret~` (`~paramTypes~` args, TypeInfo[] varArgsList, void* varArgsPtr){ ` ~ BuildForwardCall!(methodName, dynVarArgs) ~ `}`;
+    string delegate_ = `delegate ` ~ ret ~ ` (` ~ paramTypes ~ ` args, TypeInfo[] varArgsList, void* varArgsPtr){ `
+        ~ BuildForwardCall!(methodName, dynVarArgs) ~ `}`;
 
     enum varargsValueString = dynVarArgs ? ", _arguments, _argptr" : ", null, null";
-    return header ~` {  return mockMethodCall!(`~self~`, "`~methodName~`", T)(this, _owner, ` ~ delegate_ ~ varargsValueString ~`, params); `~`} `;
+    return header ~ ` {  return mockMethodCall!(` ~ self ~ `, "` ~ methodName ~ `", T)(this, _owner, ` ~
+        delegate_ ~ varargsValueString ~ `, params); ` ~ `} `;
 }
 
 string BuildForwardCall(string methodName, bool dynamicVarArgs)()
 {
-    enum methodString = dynamicVarArgs ? "v"~methodName : methodName;
+    enum methodString = dynamicVarArgs ? "v" ~ methodName : methodName;
     enum argsPassed = dynamicVarArgs ? "(args, varArgsList, varArgsPtr)" : "(args)";
 
-    return `static if (is (typeof (mocked___.` ~ methodString ~ argsPassed~`)))
+    return `static if (is(typeof(mocked___.` ~ methodString ~ argsPassed ~ `)))
             {
-                return (mocked___.` ~ methodString ~ argsPassed~`);
+                return (mocked___.` ~ methodString ~ argsPassed ~ `);
             }
-            else static if (is (typeof (super.` ~ methodString ~ argsPassed~`)))
+            else static if (is(typeof(super.` ~ methodString ~ argsPassed ~ `)))
             {
-                return (super.` ~ methodString ~ argsPassed~`);
+                return (super.` ~ methodString ~ argsPassed ~ `);
             }
             else
             {
-                assert(false, "Cannot pass the call through - there's no `~methodString~` implementation in base object!");
+                assert(false, "Cannot pass the call through - there's no ` ~ methodString
+                ~ ` implementation in base object!");
             }`;
 }
