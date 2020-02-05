@@ -61,11 +61,11 @@ string BuildForwardCall(string methodName, bool dynamicVarArgs)()
     enum methodString = dynamicVarArgs ? "v"~methodName : methodName;
     enum argsPassed = dynamicVarArgs ? "(args, varArgsList, varArgsPtr)" : "(args)";
 
-    return `static if (is (typeof (mocked___.` ~ methodString~`)))
+    return `static if (is (typeof (mocked___.` ~ methodString ~ argsPassed~`)))
             {
                 return (mocked___.` ~ methodString ~ argsPassed~`);
             }
-            else static if (is (typeof (super.` ~ methodString~`)))
+            else static if (is (typeof (super.` ~ methodString ~ argsPassed~`)))
             {
                 return (super.` ~ methodString ~ argsPassed~`);
             }
