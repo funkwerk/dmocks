@@ -1,6 +1,7 @@
 module dmocks.repository;
 
 import dmocks.action;
+import std.array;
 import dmocks.call;
 import dmocks.expectation;
 import dmocks.model;
@@ -18,7 +19,6 @@ class MockRepository
     private bool _allowUnexpected = false;
     private bool _fallback = false; // next recorded call is a fallback call (calls that should always succeed)
 
-    private Call[] _calls = [];
     private Call[] _unexpectedCalls = [];
     private GroupExpectation _rootGroupExpectation;
     private CallExpectation _lastRecordedCallExpectation; // stores last call added to _lastGroupExpectation
@@ -129,7 +129,7 @@ class MockRepository
         {
             if (AllowUnexpected())
                 return ReturnOrPass!(TReturn).init;
-            throw new ExpectationViolationException("Unexpected call to method: " ~ call.toString());
+            throw new ExpectationViolationError(buildExpectationError);
         }
 
         auto rope = expectation.action.getActor().act!(TReturn, ARGS)(args);
@@ -139,12 +139,12 @@ class MockRepository
 
     CallExpectation Match(Call call)
     {
-        _calls ~= call;
         auto exp = _rootGroupExpectation.match(call);
-        if (exp is null) {
+        if (exp is null)
+        {
             exp = _fallbackGroupExpectation.match(call);
             if (exp is null) {
-                _unexpectedCalls ~= _calls;
+                _unexpectedCalls ~= call;
             }
         }
         return exp;
@@ -172,14 +172,30 @@ class MockRepository
 
     void Verify (bool checkUnmatchedExpectations, bool checkUnexpectedCalls)
     {
-        string expectationError = "";
+        auto expectationError = buildExpectationError(checkUnmatchedExpectations, checkUnexpectedCalls);
+
+        if (!expectationError.empty)
+        {
+            throw new ExpectationViolationError(expectationError);
+        }
+    }
+
+    string buildExpectationError(bool checkUnmatchedExpectations = true, bool checkUnexpectedCalls = true)
+    {
+        auto expectationError = appender!string;
+
         if (checkUnmatchedExpectations && !_rootGroupExpectation.satisfied)
-            expectationError~="\n" ~ _rootGroupExpectation.toString();
-                
+        {
+            expectationError ~= "\n";
+            expectationError ~= _rootGroupExpectation.toString();
+        }
         if (checkUnexpectedCalls && _unexpectedCalls.length > 0)
-            expectationError~="\n" ~ UnexpectedCallsReport;
-        if (expectationError != "")
-            throw new ExpectationViolationException(expectationError);
+        {
+            expectationError ~= "\n";
+            expectationError ~= UnexpectedCallsReport;
+        }
+
+        return expectationError.data;
     }
 
     package void RecordFallback (T) (lazy T methodCall)
@@ -214,7 +230,6 @@ class MockRepository
         assert (r.Recording());
     }
 
-    
     @("test for correctly formulated template")
     unittest
     {

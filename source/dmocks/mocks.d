@@ -48,7 +48,7 @@ public class Mocker
          * checkUnexpectedCalls - Check to see if there are any calls that there were no
          * expectation set up for.
          *
-         * Throws an ExpectationViolationException if those issues occur.
+         * Throws an ExpectationViolationError if those issues occur.
          */
         void verify (bool checkUnmatchedExpectations = true, bool checkUnexpectedCalls = true) 
         {
@@ -720,7 +720,7 @@ unittest
     Mocker mocker = new Mocker();
     TestClass cl = mocker.mock!(TestClass);
     mocker.replay();
-    assertThrown!ExpectationViolationException(cl.test);
+    assertThrown!ExpectationViolationError(cl.test);
 }
 
 @("expect")
@@ -730,7 +730,7 @@ unittest
     TestClass cl = mocker.mock!(TestClass);
     mocker.expect(cl.test).repeat(0).returns("mrow?");
     mocker.replay();
-    assertThrown(cl.test);
+    assertThrown!ExpectationViolationError(cl.test);
 }
 
 @("repeat single")
@@ -744,7 +744,7 @@ unittest
 
     cl.test;
     cl.test;
-    assertThrown!ExpectationViolationException(cl.test);
+    assertThrown!ExpectationViolationError(cl.test);
 }
 
 @("repository match counts")
@@ -756,7 +756,7 @@ unittest
     cl.test;
     mocker.lastCall().repeat(2, 2).returns("mew.");
     mocker.replay();
-    assertThrown!ExpectationViolationException(mocker.verify());
+    assertThrown!ExpectationViolationError(mocker.verify());
 }
 
 @("delegate payload")
@@ -870,11 +870,8 @@ unittest
     mocker.expect(cl.test2).returns("mow!");
 
     mocker.replay();
-    try {
-        cl.test2;
-        cl.test1;
-        assert (false);
-    } catch (ExpectationViolationException) {}
+
+    assertThrown!ExpectationViolationError(cl.test2);
 }
 
 @("ordering interposed")
@@ -906,7 +903,7 @@ unittest
     obj.toHash; // unexpected tohash calls
     obj.toString;
     obj.toHash;
-    assertThrown!ExpectationViolationException(mocker.verify(false, true));
+    assertThrown!ExpectationViolationError(mocker.verify(false, true));
     mocker.verify(true, false);
 }
 
@@ -1084,22 +1081,13 @@ unittest
 
         assert(i.make == 4);
         assert(m.make == 3);
-        try
-        {
-            assert(c.make == 1);
-            assert(false, "exception not thrown");
-        }
-        catch (ExpectationViolationException e)
-        {
-        }
+        assertThrown!ExpectationViolationError(c.make);
     }
 }
 
 @("final mock of virtual methods")
 unittest
 {
-    import std.exception;
-
     auto mocker = new Mocker;
     auto obj = mocker.mockFinal!(VirtualFinal);
     mocker.expect(obj.makeVir()).returns(5);
@@ -1281,7 +1269,7 @@ class Foo {
 class Varargs
 {
     import core.vararg;
-    
+
     int varDyn(int first, ...)
     {
         return vvarDyn(first, _arguments, _argptr);
