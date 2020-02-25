@@ -46,11 +46,11 @@ class InvalidOperationException : Exception
 
 
 
-public class ExpectationViolationException : Exception 
+public class ExpectationViolationError : Error
 {
     this (string msg, string file = __FILE__, size_t line = __LINE__) 
     { 
-        super(msg);
+        super(msg, file, line);
     }
 }
 
