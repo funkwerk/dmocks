@@ -46,7 +46,17 @@ class CallExpectation : Expectation
         else
             apndr.put("not satisfied, ");
 
-        apndr.put("Method: " ~ name.toString() ~ " " ~ arguments.toString() ~ " " ~ qualifiers.toString() ~ " ExpectedCalls: " ~ repeatInterval.toString());
+        apndr.put("Method: ");
+        apndr.put(name.toString());
+        apndr.put(" ");
+        apndr.put(arguments.toString());
+        apndr.put(" ");
+        apndr.put(qualifiers.toString());
+        apndr.put("\n");
+        apndr.put(indentation);
+        apndr.put("ExpectedCalls: ");
+        apndr.put(repeatInterval.toString());
+
         if (details)
         {
             apndr.put("\n" ~ indentation ~ "Calls: " ~ _matchedCalls.length.to!string);
