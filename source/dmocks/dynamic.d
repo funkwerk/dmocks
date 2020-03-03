@@ -1,6 +1,6 @@
 module dmocks.dynamic;
 
-import std.conv;
+import std.format;
 import std.traits;
 
 /++
@@ -74,7 +74,8 @@ class DynamicT(T) : Dynamic
         }
         else
         {
-            return _data.to!string;
+            // not to!string: has problem with T == Nullable!string due to implicit conversion
+            return format!"%s"(_data);
         }
     }
 
