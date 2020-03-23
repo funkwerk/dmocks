@@ -1,6 +1,7 @@
 module dmocks.repository;
 
 import dmocks.action;
+import std.algorithm;
 import std.array;
 import dmocks.call;
 import dmocks.expectation;
@@ -185,16 +186,66 @@ class MockRepository
     string buildExpectationError(bool checkUnmatchedExpectations = true, bool checkUnexpectedCalls = true)
     {
         auto expectationError = appender!string;
+        auto unexpectedCalls = _unexpectedCalls;
 
+        // return false to abort
+        void walkExpectations(ref Expectation expectation)
+        {
+            if (auto groupExpectation = cast(GroupExpectation) expectation)
+            {
+                auto expectations = groupExpectation.expectations.dup;
+
+                foreach (ref subExpectation; expectations)
+                {
+                    walkExpectations(subExpectation);
+                }
+                expectations = expectations.remove!(a => a is null);
+
+                if (expectations.empty)
+                {
+                    expectation = null;
+                    return;
+                }
+                auto newExpectation = new GroupExpectation;
+
+                newExpectation.expectations = expectations;
+                newExpectation.ordered = groupExpectation.ordered;
+                newExpectation.repeatInterval = groupExpectation.repeatInterval;
+                expectation = newExpectation;
+                return;
+            }
+            if (auto callExpectation = cast(CallExpectation) expectation)
+            {
+                if (callExpectation.satisfied) return;
+
+                alias pred = unexpectedCall => callExpectation.name.matches(unexpectedCall.name);
+
+                unexpectedCalls.filter!pred.each!((unexpectedCall) {
+                    // name matches: assume they are meant to match up, generate parameter diff
+                    expectationError ~= "\n";
+                    expectationError ~= CallExpectationDiff(unexpectedCall, callExpectation);
+                    expectation = null;
+                });
+                unexpectedCalls = unexpectedCalls.remove!pred;
+                return;
+            }
+            assert(false, "unknown subclass of expectation");
+        }
+        if (checkUnmatchedExpectations && checkUnexpectedCalls)
+        {
+            Expectation expectation = _rootGroupExpectation;
+            walkExpectations(expectation);
+            _rootGroupExpectation.expectations = expectation ? (cast(GroupExpectation) expectation).expectations : null;
+        }
         if (checkUnmatchedExpectations && !_rootGroupExpectation.satisfied)
         {
             expectationError ~= "\n";
             expectationError ~= _rootGroupExpectation.toString();
         }
-        if (checkUnexpectedCalls && _unexpectedCalls.length > 0)
+        if (checkUnexpectedCalls && !unexpectedCalls.empty)
         {
             expectationError ~= "\n";
-            expectationError ~= UnexpectedCallsReport;
+            expectationError ~= UnexpectedCallsReport(unexpectedCalls);
         }
 
         return expectationError.data;
@@ -208,17 +259,26 @@ class MockRepository
         return;
     }
 
-    string UnexpectedCallsReport()
+    static string UnexpectedCallsReport(Call[] unexpectedCalls)
     {
         import std.array;
 
         auto apndr = appender!(string);
         apndr.put("Unexpected calls(calls):\n");
-        foreach (Call ev; _unexpectedCalls)
+        foreach (Call ev; unexpectedCalls)
         {
             apndr.put(ev.toString());
             apndr.put("\n");
         }
+        return apndr.data;
+    }
+
+    static string CallExpectationDiff(Call call, CallExpectation callExpectation)
+    {
+        import std.array;
+        auto apndr = appender!(string);
+        apndr.put("Mismatched call:\n  ");
+        apndr.put(callExpectation.diffToString(call));
         return apndr.data;
     }
 

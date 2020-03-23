@@ -69,6 +69,28 @@ class CallExpectation : Expectation
         return apndr.data;
     }
 
+    string diffToString(Call call)
+    in (name.matches(call.name), "logic error: trying to format expectation diff to call that doesn't match it")
+    {
+        string result;
+
+        if (object != call.object)
+        {
+            result ~= yellow("(different object).");
+        }
+        result ~= call.name;
+        result ~= " ";
+        result ~= arguments.diffToString(call.arguments);
+        result ~= " ";
+        result ~= qualifiers.diffToString(call.qualifiers);
+        if (_matchedCalls.length >= repeatInterval.Max)
+        {
+            result ~= " (called too many times)";
+        }
+        result ~= "\n";
+        return result;
+    }
+
     override string toString()
     {
         return toString("");
