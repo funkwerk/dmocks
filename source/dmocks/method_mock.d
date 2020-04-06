@@ -23,7 +23,8 @@ string Methods (T, bool INHERITANCE, string methodName) () {
         {
             static if (!__traits(isStaticFunction, method) && !(methodName[0..2] == "__") && 
                        !(INHERITANCE && __traits(isFinalFunction, method)) &&
-                      __traits(getProtection, method) != "private")
+                      __traits(getProtection, method) != "private" &&
+                      __traits(getProtection, method) != "package")
                 methodBodies ~= BuildMethodOverloads!(T.stringof, methodName, overloadIndex, method, INHERITANCE);
         }
     }
