@@ -110,6 +110,7 @@ class DynamicT(T) : Dynamic
 
         static if (is(T == typeof(null)))
         {
+            to = unqual(to);
             // types that have implicit conversion from null
             if (cast(TypeInfo_Array) to || cast(TypeInfo_Pointer) to
                 || cast(TypeInfo_Class) to || cast(TypeInfo_Interface) to
@@ -143,6 +144,8 @@ class DynamicT(T) : Dynamic
             interface Intf
             {
             }
+
+            to = unqual(to);
             static foreach (pair; [
                 [q{TypeInfo_Array}, q{void[]}],
                 [q{TypeInfo_Pointer}, q{void*}],
@@ -173,6 +176,19 @@ class DynamicT(T) : Dynamic
 
         assert(false);
     }
+}
+
+private TypeInfo unqual(TypeInfo type)
+{
+    if (auto type_const = cast(TypeInfo_Const) type)
+    {
+        return type_const.base;
+    }
+    if (auto type_immutable = cast(TypeInfo_Invariant /* sic */) type)
+    {
+        return type_immutable.base;
+    }
+    return type;
 }
 
 version (unittest)
@@ -223,6 +239,14 @@ unittest
 {
     auto d = dynamic(null);
     assert(d.get!A is null);
+}
+
+unittest
+{
+    auto d = dynamic(null);
+    assert(d.get!(int[]) is null);
+    assert(d.get!(const int[]) is null);
+    assert(d.get!(immutable int[]) is null);
 }
 
 unittest
