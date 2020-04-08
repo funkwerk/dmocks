@@ -11,7 +11,7 @@ interface ArgumentsMatch
     string toString();
 }
 
- //TODO: allow richer specification of arguments
+//TODO: allow richer specification of arguments
 class StrictArgumentsMatch : ArgumentsMatch
 {
     private Dynamic[] _arguments;
@@ -40,9 +40,11 @@ class ArgumentsTypeMatch : ArgumentsMatch
         _arguments = args;
         _del = del;
     }
+
     override bool matches(Dynamic[] args)
     {
         import std.range;
+
         if (args.length != _arguments.length)
             return false;
 
@@ -58,15 +60,14 @@ class ArgumentsTypeMatch : ArgumentsMatch
 
     override string toString()
     {
-        return "("~_arguments.map!(a=>a.typename).join(", ")~")";
+        return "(" ~ _arguments.map!(a => a.typename).join(", ") ~ ")";
     }
 }
-
 
 interface IArguments
 {
     string toString();
-    bool opEquals (Object other);
+    bool opEquals(Object other);
 }
 
 auto arguments(ARGS...)(ARGS args)
@@ -81,7 +82,7 @@ auto arguments(ARGS...)(ARGS args)
 
 auto formatArguments(Dynamic[] _arguments)
 {
-    return "(" ~ _arguments.map!(a=>a.typename ~ " " ~ a.toString()).join(", ") ~")";
+    return "(" ~ _arguments.map!(a => a.typename ~ " " ~ a.toString()).join(", ") ~ ")";
 }
 
 @("argument equality")
@@ -92,9 +93,9 @@ unittest
     auto c = arguments!(int, real)(9, 1.1);
     auto d = arguments!(int, float)(5, 9.7f);
 
-    assert (a == b);
-    assert (a != c);
-    assert (a != d);
+    assert(a == b);
+    assert(a != c);
+    assert(a != d);
 }
 
 @("argument toString")

@@ -29,11 +29,11 @@ struct ReturnOrPass(T)
     Flag!"pass" pass;
 }
 
-struct Actor 
+struct Actor
 {
     Action self;
 
-    ReturnOrPass!(TReturn) act (TReturn, ArgTypes...) (ArgTypes args)
+    ReturnOrPass!(TReturn) act(TReturn, ArgTypes...)(ArgTypes args)
     {
         debugLog("Actor:act");
 
@@ -47,7 +47,7 @@ struct Actor
         {
             throw self.toThrow;
         }
-        static if (is (TReturn == void))
+        static if (is(TReturn == void))
         {
             if (self.action is null)
             {
@@ -64,8 +64,8 @@ struct Actor
             {
                 import std.format : format;
 
-                throw new Error(format!"cannot call action: type %s does not match argument type %s"
-                    (self.action.typename, ArgTypes.stringof));
+                throw new Error(format!"cannot call action: type %s does not match argument type %s"(
+                        self.action.typename, ArgTypes.stringof));
             }
         }
         else
@@ -85,8 +85,8 @@ struct Actor
                 {
                     import std.format : format;
 
-                    throw new Error(format!"cannot call action: type %s does not match argument type %s"
-                        (self.action.typename, ArgTypes.stringof));
+                    throw new Error(format!"cannot call action: type %s does not match argument type %s"(
+                            self.action.typename, ArgTypes.stringof));
                 }
             }
             return Rope(No.pass);
@@ -137,8 +137,8 @@ class Action
         import std.format : format;
 
         enforce(
-            dynamic.type == this._returnType || dynamic.canConvertTo(this._returnType),
-            format!"Cannot set return value to '%s': expected '%s'"(dynamic.typename, this._returnType));
+                dynamic.type == this._returnType || dynamic.canConvertTo(this._returnType),
+                format!"Cannot set return value to '%s': expected '%s'"(dynamic.typename, this._returnType));
 
         this._returnValue = dynamic;
     }
@@ -149,9 +149,9 @@ unittest
 {
     Dynamic v = dynamic(5);
     Action act = new Action(typeid(int));
-    assert (act.returnValue is null);
+    assert(act.returnValue is null);
     act.returnValue = v;
-    assert (act.returnValue == dynamic(5));
+    assert(act.returnValue == dynamic(5));
 }
 
 @("action throws on mismatching returnValue")
@@ -162,8 +162,8 @@ unittest
     Dynamic v = dynamic(5.0f);
     Action act = new Action(typeid(int));
 
-    assert (act.returnValue is null);
-    assertThrown!Exception (act.returnValue = v);
+    assert(act.returnValue is null);
+    assertThrown!Exception(act.returnValue = v);
 }
 
 private interface ExampleInterface
@@ -187,9 +187,9 @@ unittest
 {
     Dynamic v = dynamic(5);
     Action act = new Action(typeid(int));
-    assert (act.action is null);
+    assert(act.action is null);
     act.action = v;
-    assert (act.action == v);
+    assert(act.action == v);
 }
 
 @("action exception")
@@ -197,9 +197,9 @@ unittest
 {
     Exception ex = new Exception("boogah");
     Action act = new Action(typeid(int));
-    assert (act.toThrow is null);
+    assert(act.toThrow is null);
     act.toThrow = ex;
-    assert (act.toThrow is ex);
+    assert(act.toThrow is ex);
 }
 
 @("action passthrough")
@@ -207,9 +207,9 @@ unittest
 {
     Action act = new Action(typeid(int));
     act.passThrough = true;
-    assert (act.passThrough);
+    assert(act.passThrough);
     act.passThrough = false;
-    assert (!act.passThrough);
+    assert(!act.passThrough);
 }
 
 @("action hasAction")

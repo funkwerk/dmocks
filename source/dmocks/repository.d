@@ -29,7 +29,7 @@ class MockRepository
     private Call _lastRecordedFallbackCall; // like _lastRecordedCall for fallback
     private CallExpectation _lastRecordedFallbackCallExpectation; // like _lastRecordedCallExpectation for fallback
 
-    private void CheckLastCallSetup ()
+    private void CheckLastCallSetup()
     {
         if (_allowDefaults || _lastRecordedCallExpectation is null || _lastRecordedCallExpectation.action.hasAction)
         {
@@ -37,18 +37,18 @@ class MockRepository
         }
 
         throw new MocksSetupException(
-                "Last expectation: if you do not specify the AllowDefaults option, you need to return a value, throw an exception, execute a delegate, or pass through to base function. The expectation is: " ~ _lastRecordedCallExpectation.toString());
+                "Last expectation: if you do not specify the AllowDefaults option, you need to return a value, throw an exception, execute a delegate, or pass through to base function. The expectation is: " ~ _lastRecordedCallExpectation
+                .toString());
     }
 
     this()
-    {   
+    {
         _rootGroupExpectation = createGroupExpectation(false);
         _fallbackGroupExpectation = createGroupExpectation(false);
         Ordered(false);
     }
 
-
-    void AllowDefaults (bool value)
+    void AllowDefaults(bool value)
     {
         _allowDefaults = value;
     }
@@ -63,23 +63,23 @@ class MockRepository
         return _allowUnexpected;
     }
 
-    bool Recording ()
+    bool Recording()
     {
         return _recording;
     }
 
-    bool Ordered ()
+    bool Ordered()
     {
         return _ordered;
     }
 
-    void Replay ()
+    void Replay()
     {
         CheckLastCallSetup();
         _recording = false;
     }
 
-    void BackToRecord ()
+    void BackToRecord()
     {
         _recording = true;
     }
@@ -95,7 +95,8 @@ class MockRepository
     void Record(CallExpectation expectation, Call call)
     {
         CheckLastCallSetup();
-        if (_fallback) {
+        if (_fallback)
+        {
             _fallbackGroupExpectation.addExpectation(expectation);
             _lastRecordedFallbackCallExpectation = expectation;
             _lastRecordedFallbackCall = call;
@@ -107,7 +108,7 @@ class MockRepository
         _lastRecordedCall = call;
     }
 
-    @trusted public auto MethodCall (alias METHOD, ARGS...) (MockId mocked, string name, ARGS args)
+    @trusted public auto MethodCall(alias METHOD, ARGS...)(MockId mocked, string name, ARGS args)
     {
         alias ReturnType!(FunctionTypeOf!(METHOD)) TReturn;
 
@@ -143,34 +144,35 @@ class MockRepository
         if (exp is null)
         {
             exp = _fallbackGroupExpectation.match(call);
-            if (exp is null) {
+            if (exp is null)
+            {
                 _unexpectedCalls ~= call;
             }
         }
         return exp;
     }
 
-    CallExpectation LastRecordedCallExpectation ()
+    CallExpectation LastRecordedCallExpectation()
     {
         return _lastRecordedCallExpectation;
     }
 
-    Call LastRecordedCall ()
+    Call LastRecordedCall()
     {
         return _lastRecordedCall;
     }
 
-    package CallExpectation LastRecordedFallbackCallExpectation ()
+    package CallExpectation LastRecordedFallbackCallExpectation()
     {
         return _lastRecordedFallbackCallExpectation;
     }
 
-    package Call LastRecordedFallbackCall ()
+    package Call LastRecordedFallbackCall()
     {
         return _lastRecordedFallbackCall;
     }
 
-    void Verify (bool checkUnmatchedExpectations, bool checkUnexpectedCalls)
+    void Verify(bool checkUnmatchedExpectations, bool checkUnexpectedCalls)
     {
         auto expectationError = buildExpectationError(checkUnmatchedExpectations, checkUnexpectedCalls);
 
@@ -198,7 +200,7 @@ class MockRepository
         return expectationError.data;
     }
 
-    package void RecordFallback (T) (lazy T methodCall)
+    package void RecordFallback(T)(lazy T methodCall)
     {
         _fallback = true;
         methodCall();
@@ -209,6 +211,7 @@ class MockRepository
     string UnexpectedCallsReport()
     {
         import std.array;
+
         auto apndr = appender!(string);
         apndr.put("Unexpected calls(calls):\n");
         foreach (Call ev; _unexpectedCalls)
@@ -223,11 +226,11 @@ class MockRepository
     unittest
     {
         MockRepository r = new MockRepository();
-        assert (r.Recording());
+        assert(r.Recording());
         r.Replay();
-        assert (!r.Recording());
+        assert(!r.Recording());
         r.BackToRecord();
-        assert (r.Recording());
+        assert(r.Recording());
     }
 
     @("test for correctly formulated template")
@@ -239,6 +242,7 @@ class MockRepository
             {
             }
         }
+
         auto a = new A;
         auto c = new MockRepository();
         auto mid = new MockId;

@@ -20,7 +20,7 @@ class Call
     override string toString()
     {
         string arguments = (arguments is null) ? "(<unknown>)" : arguments.formatArguments;
-        return name ~ " "~ arguments ~ " " ~ qualifiers.join(" ");
+        return name ~ " " ~ arguments ~ " " ~ qualifiers.join(" ");
     }
 }
 

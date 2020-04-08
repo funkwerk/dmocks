@@ -14,17 +14,18 @@ The only method we care about externally.
 Returns a string containing the overrides for this method
 and all its overloads.
 ++/
-string Methods (T, bool INHERITANCE, string methodName) () {
+string Methods(T, bool INHERITANCE, string methodName)()
+{
     string methodBodies = "";
 
-    static if (is (typeof(__traits(getOverloads, T, methodName))))
+    static if (is(typeof(__traits(getOverloads, T, methodName))))
     {
-        foreach (overloadIndex, method; __traits(getOverloads, T, methodName)) 
+        foreach (overloadIndex, method; __traits(getOverloads, T, methodName))
         {
-            static if (!__traits(isStaticFunction, method) && !(methodName[0..2] == "__") && 
-                       !(INHERITANCE && __traits(isFinalFunction, method)) &&
-                      __traits(getProtection, method) != "private" &&
-                      __traits(getProtection, method) != "package")
+            static if (!__traits(isStaticFunction, method) && !(methodName[0 .. 2] == "__") &&
+                    !(INHERITANCE && __traits(isFinalFunction, method)) &&
+                    __traits(getProtection, method) != "private" &&
+                    __traits(getProtection, method) != "package")
                 methodBodies ~= BuildMethodOverloads!(T.stringof, methodName, overloadIndex, method, INHERITANCE);
         }
     }
@@ -35,10 +36,10 @@ string Methods (T, bool INHERITANCE, string methodName) () {
 Returns a string containing the overload for a single function.
 This function has a return value.
 ++/
-string BuildMethodOverloads (string objectType, string methodName, int overloadIndex, alias method, bool inheritance)() 
+string BuildMethodOverloads(string objectType, string methodName, int overloadIndex, alias method, bool inheritance)()
 {
     alias FunctionTypeOf!(method) METHOD_TYPE;
-    enum returns = !is (ReturnType!(METHOD_TYPE) == void);
+    enum returns = !is(ReturnType!(METHOD_TYPE) == void);
 
     enum self = `__traits(getOverloads, T, "` ~ methodName ~ `")[` ~ overloadIndex.to!string ~ `]`;
     enum selfType = "FunctionTypeOf!(" ~ self ~ ")";
@@ -47,9 +48,10 @@ string BuildMethodOverloads (string objectType, string methodName, int overloadI
     enum dynVarArgs = variadicFunctionStyle!method == Variadic.d;
     enum varargsString = dynVarArgs ? ", ..." : "";
     enum qualified = objectType ~ `.` ~ methodName;
-    enum bool override_ = is(typeof(mixin (`Object.` ~ methodName))) && !__traits(isFinalFunction, method);
+    enum bool override_ = is(typeof(mixin(`Object.` ~ methodName))) && !__traits(isFinalFunction, method);
     enum header = ((inheritance || override_) ? `override ` : `final `) ~ ret ~ ` ` ~ methodName ~ `
-        (` ~ paramTypes ~ ` params` ~ varargsString ~ `) ` ~ formatQualifiers!(method);
+        (`
+        ~ paramTypes ~ ` params` ~ varargsString ~ `) ` ~ formatQualifiers!(method);
 
     string delegate_ = `delegate ` ~ ret ~ ` (` ~ paramTypes ~ ` args, TypeInfo[] varArgsList, void* varArgsPtr){ `
         ~ BuildForwardCall!(methodName, dynVarArgs) ~ `}`;
@@ -66,15 +68,19 @@ string BuildForwardCall(string methodName, bool dynamicVarArgs)()
 
     return `static if (is(typeof(mocked___.` ~ methodString ~ argsPassed ~ `)))
             {
-                return (mocked___.` ~ methodString ~ argsPassed ~ `);
+                return (mocked___.`
+        ~ methodString ~ argsPassed ~ `);
             }
-            else static if (is(typeof(super.` ~ methodString ~ argsPassed ~ `)))
+            else static if (is(typeof(super.`
+        ~ methodString ~ argsPassed ~ `)))
             {
-                return (super.` ~ methodString ~ argsPassed ~ `);
+                return (super.`
+        ~ methodString ~ argsPassed ~ `);
             }
             else
             {
-                assert(false, "Cannot pass the call through - there's no ` ~ methodString
-                ~ ` implementation in base object!");
+                assert(false, "Cannot pass the call through - there's no `
+        ~ methodString
+        ~ ` implementation in base object!");
             }`;
 }

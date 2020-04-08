@@ -19,12 +19,13 @@ class CallExpectation : Expectation
     {
         this.object = object;
         this.name = name;
-        this.repeatInterval = Interval(1,1);
+        this.repeatInterval = Interval(1, 1);
         this.arguments = args;
         this.qualifiers = qualifiers;
         this.action = new Action(returnType);
         _matchedCalls = [];
     }
+
     MockId object;
     NameMatch name;
     QualifierMatch qualifiers;
@@ -68,7 +69,6 @@ class CallExpectation : Expectation
         return apndr.data;
     }
 
- 
     override string toString()
     {
         return toString("");
@@ -109,7 +109,7 @@ class CallExpectation : Expectation
 
     bool satisfied()
     {
-        return _matchedCalls.length <=  repeatInterval.Max && _matchedCalls.length >=  repeatInterval.Min;
+        return _matchedCalls.length <= repeatInterval.Max && _matchedCalls.length >= repeatInterval.Min;
     }
 }
 
@@ -117,9 +117,10 @@ class GroupExpectation : Expectation
 {
     this()
     {
-        repeatInterval = Interval(1,1);
+        repeatInterval = Interval(1, 1);
         expectations = [];
     }
+
     Expectation[] expectations;
     bool ordered;
     Interval repeatInterval;
@@ -209,6 +210,6 @@ interface Expectation
 CallExpectation createExpectation(alias METHOD, ARGS...)(MockId object, string name, ARGS args)
 {
     auto ret = new CallExpectation(object, new NameMatchText(name), qualifierMatch!METHOD,
-                                    new StrictArgumentsMatch(arguments(args)), typeid(ReturnType!(FunctionTypeOf!(METHOD))));
+            new StrictArgumentsMatch(arguments(args)), typeid(ReturnType!(FunctionTypeOf!(METHOD))));
     return ret;
 }

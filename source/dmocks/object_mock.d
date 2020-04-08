@@ -6,9 +6,9 @@ import dmocks.model;
 import dmocks.repository;
 import std.traits;
 
-class Mocked (T) : T 
+class Mocked(T) : T
 {
-    static if(__traits(hasMember, T,"__ctor"))
+    static if (__traits(hasMember, T, "__ctor"))
         this(ARGS...)(ARGS args)
         {
             super(args);
@@ -16,7 +16,7 @@ class Mocked (T) : T
 
     package MockRepository _owner;
     package MockId mockId___ = new MockId;
-    mixin ((Body!(T, true)));
+    mixin((Body!(T, true)));
 }
 
 class MockedFinal(T)
@@ -33,15 +33,17 @@ class MockedFinal(T)
     auto ref opDispatch(string name, Args...)(auto ref Args params)
     {
         //TODO: how do i get an alias to a template overloaded on args?
-        mixin("alias this.mocked___."~name~"!Args METHOD;");
-        auto del = delegate ReturnType!(FunctionTypeOf!METHOD) (Args args, TypeInfo[] varArgsList, void* varArgsPtr){ mixin(BuildForwardCall!(name ~ "!Args", false)()); };
+        mixin("alias this.mocked___." ~ name ~ "!Args METHOD;");
+        auto del = delegate ReturnType!(FunctionTypeOf!METHOD)(Args args, TypeInfo[] varArgsList, void* varArgsPtr) {
+            mixin(BuildForwardCall!(name ~ "!Args", false)());
+        };
         return mockMethodCall!(METHOD, name, typeof(mocked___))(this, this._owner, del, null, null, params);
     }
 
-    mixin ((Body!(T, false)));
+    mixin((Body!(T, false)));
 }
 
-unittest 
+unittest
 {
     class A
     {
@@ -72,6 +74,7 @@ unittest
             }
         }
     }
+
     auto f = new MockedFinal!A(new A);
     static assert(__traits(compiles, f.opDispatch!("asd")(1)));
 
@@ -94,17 +97,19 @@ struct MockedStruct(T)
     auto ref opDispatch(string name, Args...)(auto ref Args params)
     {
         //TODO: how do i get an alias to a template overloaded on args?
-        mixin("alias this.mocked___."~name~"!Args METHOD;");
-        auto del = delegate ReturnType!(FunctionTypeOf!METHOD) (Args args, TypeInfo[] varArgsList, void* varArgsPtr){ mixin(BuildForwardCall!(name ~ "!Args", false)()); };
+        mixin("alias this.mocked___." ~ name ~ "!Args METHOD;");
+        auto del = delegate ReturnType!(FunctionTypeOf!METHOD)(Args args, TypeInfo[] varArgsList, void* varArgsPtr) {
+            mixin(BuildForwardCall!(name ~ "!Args", false)());
+        };
         return mockMethodCall!(METHOD, name, typeof(mocked___))(this, this._owner, del, null, null, params);
     }
 
-    mixin ((Body!(T, false)));
+    mixin((Body!(T, false)));
 }
 
 auto ref mockMethodCall(alias self, string name, T, OBJ, CALLER, FORWARD, Args...)(OBJ obj, CALLER _owner, FORWARD forwardCall, TypeInfo[] varArgsList, void* varArgsPtr, auto ref Args params)
 {
-    if (_owner is null) 
+    if (_owner is null)
     {
         assert(false, "owner cannot be null! Contact the stupid mocks developer.");
     }
@@ -113,9 +118,9 @@ auto ref mockMethodCall(alias self, string name, T, OBJ, CALLER, FORWARD, Args..
         // CAST CHEATS here - can't operate on const/shared refs without cheating on typesystem.
         // this makes these calls threadunsafe
         // because of fullyQualifiedName bug we need to pass name to the function
-        return (cast()_owner).MethodCall!(self, ParameterTypeTuple!self)
-            (cast(MockId)(obj.mockId___), __traits(identifier, T) ~ "." ~ name, params);
+        return (cast() _owner).MethodCall!(self, ParameterTypeTuple!self)(cast(MockId)(obj.mockId___), __traits(identifier, T) ~ "." ~ name, params);
     }
+
     auto rope = ({
         static if (functionAttributes!(FunctionTypeOf!(self)) & FunctionAttribute.nothrow_)
         {
@@ -134,25 +139,25 @@ auto ref mockMethodCall(alias self, string name, T, OBJ, CALLER, FORWARD, Args..
     }
     else
     {
-        static if (!is (ReturnType!(FunctionTypeOf!(self)) == void))
+        static if (!is(ReturnType!(FunctionTypeOf!(self)) == void))
         {
             return rope.value;
         }
     }
 }
 
-template Body (T, bool INHERITANCE) 
+template Body(T, bool INHERITANCE)
 {
     enum Body = BodyPart!(T, 0);
 
-    template BodyPart (T, int i)
+    template BodyPart(T, int i)
     {
-        static if (i < __traits(allMembers, T).length) 
+        static if (i < __traits(allMembers, T).length)
         {
             //pragma(msg, __traits(allMembers, T)[i]);
             enum BodyPart = Methods!(T, INHERITANCE, __traits(allMembers, T)[i]) ~ BodyPart!(T, i + 1);
         }
-        else 
+        else
         {
             enum BodyPart = ``;
         }

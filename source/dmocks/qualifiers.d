@@ -16,7 +16,7 @@ QualifierMatch qualifierMatch(alias T)()
     {
         q._qualifiers[name] = true;
     }
-    foreach (string name; validQualifiers.filter!(a=>a !in q._qualifiers))
+    foreach (string name; validQualifiers.filter!(a => a !in q._qualifiers))
     {
         q._qualifiers[name] = false;
     }
@@ -76,22 +76,24 @@ unittest
             return a;
         }
     }
+
     auto aimut = new immutable(A);
     auto aconst = new const shared(A);
     auto amut = new A;
-//  assert(qualifiers!(aimut.makeImut)().sort().array() == [Qual!"immutable", Qual!"nothrow", Qual!"@trusted"].sort);
-//  assert(qualifiers!(aconst.makePure)().sort().array() == [Qual!"@safe", Qual!"inout", Qual!"pure"].sort);
-//  assert(qualifiers!(aconst.make)().sort().array() == [Qual!"@property", Qual!"@system", Qual!"const", Qual!"shared"].sort);
+    //  assert(qualifiers!(aimut.makeImut)().sort().array() == [Qual!"immutable", Qual!"nothrow", Qual!"@trusted"].sort);
+    //  assert(qualifiers!(aconst.makePure)().sort().array() == [Qual!"@safe", Qual!"inout", Qual!"pure"].sort);
+    //  assert(qualifiers!(aconst.make)().sort().array() == [Qual!"@property", Qual!"@system", Qual!"const", Qual!"shared"].sort);
     assert(qualifiers!(amut.makeRef)().sort().array() == [Qual!"@system", Qual!"ref"]);
-//  assert(qualifierMatch!(aconst.make).matches([Qual!"@property", Qual!"@system", Qual!"const", Qual!"shared"].sort));
-//  assert(!qualifierMatch!(aconst.make).matches([Qual!"@property", Qual!"@system", Qual!"shared"].sort));
-//  assert(!qualifierMatch!(aconst.make).matches([Qual!"@property", Qual!"ref", Qual!"@system", Qual!"shared"].sort));
-//  assert(!qualifierMatch!(aconst.make).matches(["property", Qual!"@system", Qual!"shared"].sort));
+    //  assert(qualifierMatch!(aconst.make).matches([Qual!"@property", Qual!"@system", Qual!"const", Qual!"shared"].sort));
+    //  assert(!qualifierMatch!(aconst.make).matches([Qual!"@property", Qual!"@system", Qual!"shared"].sort));
+    //  assert(!qualifierMatch!(aconst.make).matches([Qual!"@property", Qual!"ref", Qual!"@system", Qual!"shared"].sort));
+    //  assert(!qualifierMatch!(aconst.make).matches(["property", Qual!"@system", Qual!"shared"].sort));
 }
 
 private string[] getFunctionAttributes(alias T)()
 {
     import std.array;
+
     enum attributes = functionAttributes!(typeof(&T));
     auto ret = appender!(string[]);
     static if ((attributes & FunctionAttribute.nothrow_) != 0)
@@ -129,6 +131,7 @@ private string[] getMethodAttributes(alias T)()
 {
     alias FunctionTypeOf!T TYPE;
     import std.array;
+
     auto ret = appender!(string[]);
     static if (is(TYPE == const))
     {
@@ -152,7 +155,8 @@ private string[] getMethodAttributes(alias T)()
 /// checks if qualifiers is a unique set of valid qualifiers
 public void enforceQualifierNames(string[] qualifiers)
 {
-    enforce!(MocksSetupException)(qualifiers.uniq.array == qualifiers,"Qualifiers: given qualifiers are not unique: " ~ qualifiers.join(" "));
+    enforce!(MocksSetupException)(qualifiers.uniq.array == qualifiers,
+            "Qualifiers: given qualifiers are not unique: " ~ qualifiers.join(" "));
 
     // bad perf, but data is small
     foreach (string q; qualifiers)
@@ -161,7 +165,8 @@ public void enforceQualifierNames(string[] qualifiers)
     }
 }
 
-private immutable string[] validQualifiers = sort(["const", "shared", "immutable", "nothrow", "pure", "ref", "@property", "@trusted", "@safe", "inout", "@system"]).array;
+private immutable string[] validQualifiers = sort(["const", "shared", "immutable", "nothrow", "pure", "ref", "@property", "@trusted", "@safe", "inout", "@system"])
+    .array;
 
 /// validates qualifier name
 template Qual(string val)
@@ -188,18 +193,24 @@ void enforceQualifierMatch(bool[string] qualifiers)
     {
         return Qual!first in qualifiers && Qual!second in qualifiers && qualifiers[Qual!first] && qualifiers[Qual!second];
     }
+
     bool testThreeForbidden(string first, string second, string third)()
     {
         return Qual!first in qualifiers && Qual!second && Qual!second in qualifiers && !qualifiers[Qual!first] && !qualifiers[Qual!second] && !qualifiers[Qual!third];
     }
+
     void enforceBothNotSet(string first, string second)()
     {
-        enforce!(MocksSetupException)(!testBothSet!(first, second), "Qualifiers: cannot require both "~first~" and "~second);
+        enforce!(MocksSetupException)(!testBothSet!(first, second),
+                "Qualifiers: cannot require both " ~ first ~ " and " ~ second);
     }
+
     void enforceThreeNotSet(string first, string second, string third)()
     {
-        enforce!(MocksSetupException)(!testThreeForbidden!(first, second, third), "Qualifiers: cannot forbid all "~first~", "~second~" and "~third);
+        enforce!(MocksSetupException)(!testThreeForbidden!(first, second, third),
+                "Qualifiers: cannot forbid all " ~ first ~ ", " ~ second ~ " and " ~ third);
     }
+
     enforceBothNotSet!("@trusted", "@safe");
     enforceBothNotSet!("@system", "@trusted");
     enforceBothNotSet!("@system", "@safe");
@@ -220,19 +231,19 @@ struct QualifierMatch
     ///
     string toString() const
     {
-        auto opt = validQualifiers.dup.filter!((a)=> a !in _qualifiers)().join(" ");
-        return _qualifiers.keys.filter!((a)=> _qualifiers[a])().join(" ") ~ 
-            (opt.length != 0 ? " (optional: " ~ opt ~")" : "");
+        auto opt = validQualifiers.dup.filter!((a) => a !in _qualifiers)().join(" ");
+        return _qualifiers.keys.filter!((a) => _qualifiers[a])().join(" ") ~
+            (opt.length != 0 ? " (optional: " ~ opt ~ ")" : "");
     }
 
     /// returns true if all required qualifiers are present and all forbidden are absent in against array
     bool matches(string[] against) const
     {
-        debugLog("QualifierMatch: match against: "~ against.join(" "));
+        debugLog("QualifierMatch: match against: " ~ against.join(" "));
         debugLog("state: " ~ toString());
         foreach (string searched; against)
         {
-            const(bool)* found =  searched in _qualifiers;
+            const(bool)* found = searched in _qualifiers;
             if (found is null)
                 continue;
             if (!(*found))

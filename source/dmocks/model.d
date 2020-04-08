@@ -1,7 +1,13 @@
 module dmocks.model;
 
-interface IMocked {}
+interface IMocked
+{
+}
 
-class FakeMocked : MockId {}
+class FakeMocked : MockId
+{
+}
 
-package class MockId {}
+package class MockId
+{
+}

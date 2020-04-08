@@ -13,5 +13,7 @@ unittest
 
 class Class
 {
-    package void foo() { }
+    package void foo()
+    {
+    }
 }
