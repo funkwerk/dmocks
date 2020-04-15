@@ -41,14 +41,14 @@ template IsConcreteClass(T)
 
 class InvalidOperationException : Exception
 {
-    this()
+    this(string file = __FILE__, size_t line = __LINE__)
     {
-        super(typeof(this).stringof ~ "The requested operation is not valid.");
+        super(typeof(this).stringof ~ "The requested operation is not valid.", file, line);
     }
 
-    this(string msg)
+    this(string msg, string file = __FILE__, size_t line = __LINE__)
     {
-        super(typeof(this).stringof ~ msg);
+        super(typeof(this).stringof ~ msg, file, line);
     }
 }
 

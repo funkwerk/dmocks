@@ -196,9 +196,8 @@ public class Mocker
             auto pre = _repository.LastRecordedCallExpectation();
             methodCall();
             auto post = _repository.LastRecordedCallExpectation();
-            if (pre is post)
-                throw new InvalidOperationException(
-                        "mocks.Mocker.expect: you did not call a method mocked by the mocker!");
+            enforce!InvalidOperationException(pre !is post,
+                    "mocks.Mocker.expect: you did not call a method mocked by the mocker!");
             return lastCall();
         }
 
@@ -281,9 +280,8 @@ public template expectT(alias obj, string method)
         auto pre = mocker._repository.LastRecordedCallExpectation();
         __traits(getMember, obj, method)(args);
         auto post = mocker._repository.LastRecordedCallExpectation();
-        if (pre is post)
-            throw new InvalidOperationException(
-                    "mocks.Mocker.expect: you did not call a method mocked by the mocker!");
+        enforce!InvalidOperationException(pre !is post,
+                "mocks.Mocker.expect: you did not call a method mocked by the mocker!");
         return new typeof(return)(
                 mocker._repository.LastRecordedCallExpectation(),
                 mocker._repository.LastRecordedCall());
@@ -355,10 +353,7 @@ public class ExpectationSetup
     */
     ExpectationSetup repeat(int min, int max)
     {
-        if (min > max)
-        {
-            throw new InvalidOperationException("The specified range is invalid.");
-        }
+        enforce!InvalidOperationException(min <= max, "The specified range is invalid.");
         _expectation.repeatInterval = Interval(min, max);
         return this;
     }
@@ -457,9 +452,9 @@ public class TemplatedExpectationSetup(T)
     private Call _setUpCall;
 
     this(CallExpectation expectation, Call setUpCall)
+    in (expectation !is null, "can't create an ExpectationSetup if expectation is null")
+    in (setUpCall !is null, "can't create an ExpectationSetup if setUpCall is null")
     {
-        assert(expectation !is null, "can't create an ExpectationSetup if expectation is null");
-        assert(setUpCall !is null, "can't create an ExpectationSetup if setUpCall is null");
         _expectation = expectation;
         _setUpCall = setUpCall;
     }
@@ -487,10 +482,7 @@ public class TemplatedExpectationSetup(T)
      */
     TemplatedExpectationSetup repeat(int min, int max)
     {
-        if (min > max)
-        {
-            throw new InvalidOperationException("The specified range is invalid.");
-        }
+        enforce!InvalidOperationException(min <= max, "The specified range is invalid.");
         _expectation.repeatInterval = Interval(min, max);
         return this;
     }
