@@ -6,9 +6,12 @@ import std.exception;
 
 package:
 
-struct Interval 
+struct Interval
 {
-    bool Valid () { return Min <= Max; }
+    bool Valid()
+    {
+        return Min <= Max;
+    }
 
     private int _min;
     private int _max;
@@ -23,14 +26,14 @@ struct Interval
         return _max;
     }
 
-    string toString () const
+    string toString() const
     {
         if (_min == _max)
             return std.conv.to!string(_min);
         return std.conv.to!string(_min) ~ ".." ~ std.conv.to!string(_max);
     }
 
-    this (int min, int max) 
+    this(int min, int max)
     {
         this._min = min;
         this._max = max;
@@ -39,18 +42,18 @@ struct Interval
 
     void enforceValid()
     {
-        enforce!MocksSetupException(Valid, "Interval: invalid interval range: "~ toString());
+        enforce!MocksSetupException(Valid, "Interval: invalid interval range: " ~ toString());
     }
 }
 
 unittest
 {
     Interval t = Interval(1, 2);
-    assert (to!string(t) == "1..2");
+    assert(to!string(t) == "1..2");
 }
 
 unittest
 {
     Interval t = Interval(1, 1);
-    assert (to!string(t) == "1");
+    assert(to!string(t) == "1");
 }

@@ -15,12 +15,12 @@ class Foo
 {
     private Bar bar;
 
-    this (Bar bar)
+    this(Bar bar)
     {
         this.bar = bar;
     }
 
-    int calculateThings (ubyte[] data)
+    int calculateThings(ubyte[] data)
     {
         int i = bar.doSomeCalculations(data);
         return i;

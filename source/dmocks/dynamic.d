@@ -28,15 +28,15 @@ T get(T)(Dynamic d)
     import std.format : format;
 
     if (d.type == typeid(T))
-        return ((cast(DynamicT!T)d).data());
+        return ((cast(DynamicT!T) d).data());
 
     enforce(
-        d.canConvertTo(typeid(T)),
-        format!"Cannot convert stored value of type '%s' to '%s'!"(d.typename, T.stringof));
+            d.canConvertTo(typeid(T)),
+            format!"Cannot convert stored value of type '%s' to '%s'!"(d.typename, T.stringof));
 
     const(void)[] convertResult = d.convertTo(typeid(T));
 
-    return (cast(T*)convertResult.ptr)[0];
+    return (cast(T*) convertResult.ptr)[0];
 }
 
 /// a helper function for creating Dynamic obhects
@@ -82,7 +82,7 @@ class DynamicT(T) : Dynamic
     /// two dynamics are equal when they store same type and the values pass opEquals
     override bool opEquals(Object object)
     {
-        auto dyn = cast(DynamicT!T)object;
+        auto dyn = cast(DynamicT!T) object;
         if (dyn is null)
             return false;
         if (dyn.type != type)
@@ -113,8 +113,8 @@ class DynamicT(T) : Dynamic
             to = unqual(to);
             // types that have implicit conversion from null
             if (cast(TypeInfo_Array) to || cast(TypeInfo_Pointer) to
-                || cast(TypeInfo_Class) to || cast(TypeInfo_Interface) to
-                || cast(TypeInfo_Function) to || cast(TypeInfo_Delegate) to)
+                    || cast(TypeInfo_Class) to || cast(TypeInfo_Interface) to
+                    || cast(TypeInfo_Function) to || cast(TypeInfo_Delegate) to)
             {
                 return true;
             }
@@ -147,13 +147,13 @@ class DynamicT(T) : Dynamic
 
             to = unqual(to);
             static foreach (pair; [
-                [q{TypeInfo_Array}, q{void[]}],
-                [q{TypeInfo_Pointer}, q{void*}],
-                [q{TypeInfo_Class}, q{Object}],
-                [q{TypeInfo_Interface}, q{Intf}],
-                [q{TypeInfo_Function}, q{void function()}],
-                [q{TypeInfo_Delegate}, q{void delegate()}],
-            ])
+                    [q{TypeInfo_Array}, q{void[]}],
+                    [q{TypeInfo_Pointer}, q{void*}],
+                    [q{TypeInfo_Class}, q{Object}],
+                    [q{TypeInfo_Interface}, q{Intf}],
+                    [q{TypeInfo_Function}, q{void function()}],
+                    [q{TypeInfo_Delegate}, q{void delegate()}],
+                ])
             {
                 mixin(format!q{
                     if (cast(%s) to)
@@ -184,7 +184,7 @@ private TypeInfo unqual(TypeInfo type)
     {
         return type_const.base;
     }
-    if (auto type_immutable = cast(TypeInfo_Invariant /* sic */) type)
+    if (auto type_immutable = cast(TypeInfo_Invariant /* sic */ ) type)
     {
         return type_immutable.base;
     }
@@ -253,7 +253,7 @@ unittest
 {
     int[5] a;
     auto d = dynamic(a);
-    assert(d.get!(int[5]) == [0,0,0,0,0]);
+    assert(d.get!(int[5]) == [0, 0, 0, 0, 0]);
 }
 
 unittest

@@ -20,6 +20,7 @@ class NameMatchText : NameMatch
     {
         this._text = text;
     }
+
     bool matches(string against)
     {
         return _text == against;
@@ -43,7 +44,7 @@ class NameMatchRegex : NameMatch
     + creates a name matcher using std.regex module
     + takes regex pattern and flags as described in std.regex.regex
     +/
-    this(string pattern, const(char)[] flags="")
+    this(string pattern, const(char)[] flags = "")
     {
         this._pattern = pattern;
         this._flags = flags;

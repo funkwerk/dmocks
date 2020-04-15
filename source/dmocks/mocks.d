@@ -3,19 +3,19 @@ module dmocks.mocks;
 public import dmocks.dynamic;
 import dmocks.factory;
 public import dmocks.object_mock;
-import dmocks.repository; 
+import dmocks.repository;
 import dmocks.util;
 
 /++
     A class through which one creates mock objects and manages expectations about calls to their methods.
  ++/
-public class Mocker 
+public class Mocker
 {
     private MockRepository _repository;
 
-    public 
+    public
     {
-        this () 
+        this()
         {
             _repository = new MockRepository();
         }
@@ -24,7 +24,7 @@ public class Mocker
         * Start setting up expectations. Method calls on mock object will create (and record) new expectations. 
         * You can just call methods directly or use Mocker.expect/lastCall to customize expectations.
         */
-        void record () 
+        void record()
         {
             _repository.BackToRecord();
         }
@@ -34,7 +34,7 @@ public class Mocker
          * be matched against the expectations set up before calling replay and
          * expectations' actions will be executed.
          */
-        void replay () 
+        void replay()
         {
             _repository.Replay();
         }
@@ -50,7 +50,7 @@ public class Mocker
          *
          * Throws an ExpectationViolationError if those issues occur.
          */
-        void verify (bool checkUnmatchedExpectations = true, bool checkUnexpectedCalls = true) 
+        void verify(bool checkUnmatchedExpectations = true, bool checkUnexpectedCalls = true)
         {
             _repository.Verify(checkUnmatchedExpectations, checkUnexpectedCalls);
         }
@@ -61,12 +61,12 @@ public class Mocker
          * those expectations, and call Mocker.unordered to avoid requiring a
          * particular order afterward.
          */
-        void ordered () 
+        void ordered()
         {
             _repository.Ordered(true);
         }
 
-        void unordered () 
+        void unordered()
         {
             _repository.Ordered(false);
         }
@@ -97,14 +97,14 @@ public class Mocker
          *
          * Use this type of mock to substitute interface/class objects
          */
-        T mock (T, CONSTRUCTOR_ARGS...) (CONSTRUCTOR_ARGS args) 
+        T mock(T, CONSTRUCTOR_ARGS...)(CONSTRUCTOR_ARGS args)
         {
-            static assert (is(T == class) || is(T == interface), 
-                           "only classes and interfaces can be mocked using this type of mock");
+            static assert(is(T == class) || is(T == interface),
+                    "only classes and interfaces can be mocked using this type of mock");
             auto value = dmocks.factory.mock!(T)(_repository, args);
             static if (is(T == class)
-                && __traits(compiles, value.toString())
-                && __traits(compiles, value.opEquals(null)))
+                    && __traits(compiles, value.toString())
+                    && __traits(compiles, value.opEquals(null)))
             {
                 expectFallback(value.toString()).repeatAny.passThrough;
                 expectFallback(value.opEquals(null)).ignoreArgs.repeatAny.passThrough;
@@ -123,10 +123,10 @@ public class Mocker
          *
          * Use this type of mock to substitute template parameters
          */
-        MockedFinal!T mockFinal(T, CONSTRUCTOR_ARGS...) (CONSTRUCTOR_ARGS args)
+        MockedFinal!T mockFinal(T, CONSTRUCTOR_ARGS...)(CONSTRUCTOR_ARGS args)
         {
-            static assert (is(T == class) || is(T == interface), 
-                           "only classes and interfaces can be mocked using this type of mock");
+            static assert(is(T == class) || is(T == interface),
+                    "only classes and interfaces can be mocked using this type of mock");
             return dmocks.factory.mockFinal!(T)(_repository, args);
         }
 
@@ -141,10 +141,10 @@ public class Mocker
          *
          * Use this type of mock to substitute template parameters
          */
-        MockedFinal!T mockFinalPassTo(T) (T to)
+        MockedFinal!T mockFinalPassTo(T)(T to)
         {
-            static assert (is(T == class) || is(T == interface), 
-                           "only classes and interfaces can be mocked using this type of mock");
+            static assert(is(T == class) || is(T == interface),
+                    "only classes and interfaces can be mocked using this type of mock");
             return dmocks.factory.mockFinalPassTo!(T)(_repository, to);
         }
 
@@ -159,10 +159,10 @@ public class Mocker
          *
          * Use this type of mock to substitute template parameters
          */
-        MockedStruct!T mockStruct(T, CONSTRUCTOR_ARGS...) (CONSTRUCTOR_ARGS args)
+        MockedStruct!T mockStruct(T, CONSTRUCTOR_ARGS...)(CONSTRUCTOR_ARGS args)
         {
-            static assert (is(T == struct), 
-                           "only structs can be mocked using this type of mock");
+            static assert(is(T == struct),
+                    "only structs can be mocked using this type of mock");
             return dmocks.factory.mockStruct!(T)(_repository, args);
         }
 
@@ -177,10 +177,10 @@ public class Mocker
          *
          * Use this type of mock to substitute template parameters
          */
-        MockedStruct!T mockStructPassTo(T) (T to)
+        MockedStruct!T mockStructPassTo(T)(T to)
         {
-            static assert (is(T == struct), 
-                           "only structs can be mocked using this type of mock");
+            static assert(is(T == struct),
+                    "only structs can be mocked using this type of mock");
             return dmocks.factory.mockStructPassTo!(T)(_repository, to);
         }
 
@@ -197,7 +197,8 @@ public class Mocker
          * mocker.expect(obj.toString).returns("hello?");
          * ---
          */
-        ExpectationSetup expect (T) (lazy T methodCall) {
+        ExpectationSetup expect(T)(lazy T methodCall)
+        {
             auto pre = _repository.LastRecordedCallExpectation();
             methodCall();
             auto post = _repository.LastRecordedCallExpectation();
@@ -206,11 +207,12 @@ public class Mocker
             return lastCall();
         }
 
-        private ExpectationSetup expectFallback (T) (lazy T methodCall) {
+        private ExpectationSetup expectFallback(T)(lazy T methodCall)
+        {
             _repository.RecordFallback(methodCall);
             return new ExpectationSetup(
-                _repository.LastRecordedFallbackCallExpectation(),
-                _repository.LastRecordedFallbackCall(),
+                    _repository.LastRecordedFallbackCallExpectation(),
+                    _repository.LastRecordedFallbackCall(),
             );
         }
 
@@ -228,7 +230,8 @@ public class Mocker
          * mocker.LastCall().returns("hello?");
          * ---
          */
-        ExpectationSetup lastCall () {
+        ExpectationSetup lastCall()
+        {
             return new ExpectationSetup(_repository.LastRecordedCallExpectation(), _repository.LastRecordedCall());
         }
 
@@ -237,12 +240,14 @@ public class Mocker
          * Things where you want to allow this method to be called, but you aren't
          * currently testing for it.
          */
-        ExpectationSetup allowing (T) (T ignored) {
+        ExpectationSetup allowing(T)(T ignored)
+        {
             return lastCall().repeatAny;
         }
 
         /** Ditto */
-        ExpectationSetup allowing (T = void) () {
+        ExpectationSetup allowing(T = void)()
+        {
             return lastCall().repeatAny();
         }
 
@@ -252,7 +257,8 @@ public class Mocker
          * cases). By default, if no return value, exception, delegate, or
          * passthrough option is set, an exception will be thrown.
          */
-        void allowDefaults () {
+        void allowDefaults()
+        {
             _repository.AllowDefaults(true);
         }
     }
@@ -272,7 +278,7 @@ public class Mocker
    mocker.LastCall().returns("Are you still there?").repeat(1, 12);
    ---
 ++/
-public class ExpectationSetup 
+public class ExpectationSetup
 {
     import dmocks.arguments;
     import dmocks.expectation;
@@ -284,63 +290,63 @@ public class ExpectationSetup
 
     private Call _setUpCall;
 
-   this (CallExpectation expectation, Call setUpCall) 
-   {
-       assert (expectation !is null, "can't create an ExpectationSetup if expectation is null");
-       assert (setUpCall !is null, "can't create an ExpectationSetup if setUpCall is null");
-       _expectation = expectation;
-       _setUpCall = setUpCall;
-   }
+    this(CallExpectation expectation, Call setUpCall)
+    {
+        assert(expectation !is null, "can't create an ExpectationSetup if expectation is null");
+        assert(setUpCall !is null, "can't create an ExpectationSetup if setUpCall is null");
+        _expectation = expectation;
+        _setUpCall = setUpCall;
+    }
 
-   /**
+    /**
     * Ignore method argument values in matching calls to this expectation.
     */
-   ExpectationSetup ignoreArgs () 
-   {
-       _expectation.arguments = new ArgumentsTypeMatch(_setUpCall.arguments, (Dynamic a, Dynamic b)=>true);
-       return this;
-   }
+    ExpectationSetup ignoreArgs()
+    {
+        _expectation.arguments = new ArgumentsTypeMatch(_setUpCall.arguments, (Dynamic a, Dynamic b) => true);
+        return this;
+    }
 
-   /**
+    /**
     * Allow providing custom argument comparator for matching calls to this expectation.
     */
-   ExpectationSetup customArgsComparator (bool delegate(Dynamic expected, Dynamic provided) del) 
-   {
-       _expectation.arguments = new ArgumentsTypeMatch(_setUpCall.arguments, del);
-       return this;
-   }
+    ExpectationSetup customArgsComparator(bool delegate(Dynamic expected, Dynamic provided) del)
+    {
+        _expectation.arguments = new ArgumentsTypeMatch(_setUpCall.arguments, del);
+        return this;
+    }
 
-   /**
+    /**
     * This expectation must match to at least min number of calls and at most to max number of calls.
     */
-   ExpectationSetup repeat (int min, int max) 
-   {
-       if (min > max) 
-       {
-           throw new InvalidOperationException("The specified range is invalid.");
-       }
+    ExpectationSetup repeat(int min, int max)
+    {
+        if (min > max)
+        {
+            throw new InvalidOperationException("The specified range is invalid.");
+        }
         _expectation.repeatInterval = Interval(min, max);
-       return this;
-   }
+        return this;
+    }
 
-   /**
+    /**
     * This expectation will match exactly i times.
     */
-   ExpectationSetup repeat (int i) 
-   {
-       repeat(i,i);
-       return this;
-   }
+    ExpectationSetup repeat(int i)
+    {
+        repeat(i, i);
+        return this;
+    }
 
-   /**
+    /**
     * This expectation will match to any number of calls.
     */
-   ExpectationSetup repeatAny () 
-   {
-       return repeat(0, int.max);
-   }
+    ExpectationSetup repeatAny()
+    {
+        return repeat(0, int.max);
+    }
 
-   /**
+    /**
     * When the method which matches this expectation is called execute the
     * given delegate. The delegate's signature must match the signature
     * of the called method. If it does not, an exception will be thrown.
@@ -352,39 +358,39 @@ public class ExpectationSetup
     *     .action((int i, char[] s, Object o, char c) { return -1; });
     * ---
     */
-   ExpectationSetup action (T, U...)(T delegate(U) action) 
-   {
-       _expectation.action.action = dynamic(action);
-       return this;
-   }
+    ExpectationSetup action(T, U...)(T delegate(U) action)
+    {
+        _expectation.action.action = dynamic(action);
+        return this;
+    }
 
-   // TODO: how can I get validation here that the type you're
-   // inserting is the type expected before trying to execute it?
-   // Not really an issue, since it'd be revealed in the space
-   // of a single test.
-   /**
+    // TODO: how can I get validation here that the type you're
+    // inserting is the type expected before trying to execute it?
+    // Not really an issue, since it'd be revealed in the space
+    // of a single test.
+    /**
     * Set the value to return when method matching this expectation is called on a mock object.
     * Params:
     *     value = the value to return
     */
-   ExpectationSetup returns (T)(T value) 
-   {
-       _expectation.action.returnValue = dynamic(value);
-       return this;
-   }
+    ExpectationSetup returns(T)(T value)
+    {
+        _expectation.action.returnValue = dynamic(value);
+        return this;
+    }
 
-   /**
+    /**
     * When the method which matches this expectation is called,
     * throw the given exception. If there are any
     * actions specified (via the action method), they will not be executed.
     */
-   ExpectationSetup throws (Exception e) 
-   {
-       _expectation.action.toThrow = e;
-       return this;
-   }
+    ExpectationSetup throws(Exception e)
+    {
+        _expectation.action.toThrow = e;
+        return this;
+    }
 
-   /**
+    /**
     * Instead of returning or throwing a given value, pass the call through to
     * the mocked type object. For mock***PassTo(obj) obj has to be valid for this to work.
     *
@@ -393,11 +399,11 @@ public class ExpectationSetup
     *
     * `opEquals` and `toString` are passed through automatically.
     */
-   ExpectationSetup passThrough ()
-   {
-       _expectation.action.passThrough = true;
-       return this;
-   }
+    ExpectationSetup passThrough()
+    {
+        _expectation.action.passThrough = true;
+        return this;
+    }
 }
 
 /// backward compatibility alias
@@ -411,6 +417,7 @@ version (unittest)
     class Templated(T)
     {
     }
+
     interface IM
     {
         void bar();
@@ -422,6 +429,7 @@ version (unittest)
         {
             a = i;
         }
+
         int a;
         int getA()
         {
@@ -434,13 +442,14 @@ version (unittest)
         this()
         {
         }
+
         void print()
         {
             writeln(toString());
         }
     }
 
-    interface IRM 
+    interface IRM
     {
         IM get();
         void set(IM im);
@@ -475,6 +484,7 @@ version (unittest)
         void foo()
         {
         }
+
         void foo(int i)
         {
         }
@@ -520,6 +530,7 @@ version (unittest)
         {
             this.con = con;
         }
+
         abstract int abs();
 
         int concrete()
@@ -534,10 +545,12 @@ version (unittest)
         {
             return 0;
         }
+
         final int make(int i)
         {
             return 2;
         }
+
         int makeVir()
         {
             return 5;
@@ -557,6 +570,7 @@ version (unittest)
         string get(T)(T t)
         {
             import std.traits;
+
             return fullyQualifiedName!T;
         }
 
@@ -583,7 +597,6 @@ version (unittest)
         }
     }
 
-
     struct StructWithConstructor
     {
         int field;
@@ -591,6 +604,7 @@ version (unittest)
         {
             field = i;
         }
+
         int get()
         {
             return field;
@@ -692,14 +706,25 @@ unittest
     obj.print;
     auto e = mocker.lastCall;
 
-    assert (e !is null);
+    assert(e !is null);
 }
 
 private class TestClass
 {
-    string test() { return "test"; }
-    string test1() { return "test 1"; }
-    string test2() { return "test 2"; }
+    string test()
+    {
+        return "test";
+    }
+
+    string test1()
+    {
+        return "test 1";
+    }
+
+    string test2()
+    {
+        return "test 2";
+    }
 }
 
 @("return a value")
@@ -710,7 +735,7 @@ unittest
     cl.test;
     auto e = mocker.lastCall;
 
-    assert (e !is null);
+    assert(e !is null);
     e.returns("frobnitz");
 }
 
@@ -781,7 +806,7 @@ unittest
     auto obj = mocker.mock!(SimpleObject);
 
     //o.print;
-    mocker.expect(obj.print).action((int) { });
+    mocker.expect(obj.print).action((int) {});
     mocker.replay();
 
     assertThrown!Error(obj.print);
@@ -798,12 +823,15 @@ unittest
     mocker.lastCall().throws(new Exception(msg));
     mocker.replay();
 
-    try {
+    try
+    {
         obj.print;
-        assert (false, "expected exception not thrown");
-    } catch (Exception e) {
+        assert(false, "expected exception not thrown");
+    }
+    catch (Exception e)
+    {
         // Careful -- assertion errors derive from Exception
-        assert (e.msg == msg, e.msg);
+        assert(e.msg == msg, e.msg);
     }
 }
 
@@ -817,7 +845,7 @@ unittest
 
     mocker.replay();
     string str = cl.test;
-    assert (str == "test", str);
+    assert(str == "test", str);
 }
 
 @("class with constructor init check")
@@ -828,7 +856,7 @@ unittest
     obj.getA();
     mocker.lastCall().passThrough();
     mocker.replay();
-    assert (4 == obj.getA());
+    assert(4 == obj.getA());
 }
 
 @("associative arrays")
@@ -851,7 +879,7 @@ unittest
     Mocker mocker = new Mocker();
     auto obj = mocker.mock!(Object);
     mocker.ordered;
-    mocker.expect(obj.toHash).returns(cast(hash_t)5);
+    mocker.expect(obj.toHash).returns(cast(hash_t) 5);
     mocker.expect(obj.toString).returns("mow!");
 
     mocker.replay();
@@ -880,7 +908,7 @@ unittest
     Mocker mocker = new Mocker();
     auto obj = mocker.mock!(SimpleObject);
     mocker.ordered;
-    mocker.expect(obj.toHash).returns(cast(hash_t)5);
+    mocker.expect(obj.toHash).returns(cast(hash_t) 5);
     mocker.expect(obj.toString).returns("mow!");
     mocker.unordered;
     obj.print;
@@ -924,14 +952,17 @@ unittest
 @("nothing for method to do")
 unittest
 {
-    try {
+    try
+    {
         Mocker mocker = new Mocker();
         auto cl = mocker.mock!(TestClass);
         mocker.allowing(cl.test);
 
         mocker.replay();
-        assert (false, "expected a mocks setup exception");
-    } catch (MocksSetupException e) {
+        assert(false, "expected a mocks setup exception");
+    }
+    catch (MocksSetupException e)
+    {
     }
 }
 
@@ -944,7 +975,7 @@ unittest
     mocker.allowing(cl.test);
 
     mocker.replay();
-    assert (cl.test == (char[]).init);
+    assert(cl.test == (char[]).init);
 }
 
 // Going through the guts of Smthng
@@ -1009,7 +1040,7 @@ unittest
     obj.set(im);
     mocker.replay;
     debugLog("about to call twice...");
-    assert (obj.get is im, "returned the wrong value");
+    assert(obj.get is im, "returned the wrong value");
     obj.set(im);
     mocker.verify;
 }
@@ -1114,7 +1145,7 @@ unittest
     mocker.expect(obj.make()).passThrough;
     mocker.expect(obj.make(1)).passThrough;
     mocker.replay;
-    static assert(!is(typeof(o)==FinalMethods));
+    static assert(!is(typeof(o) == FinalMethods));
     assert(obj.make == 0);
     assert(obj.make(1) == 2);
     mocker.verify;
@@ -1223,12 +1254,13 @@ unittest
     auto mocker = new Mocker;
     auto dependency = mocker.mock!TakesFloat;
     mocker.expect(dependency.foo(1.0f)).customArgsComparator(
-         (Dynamic a, Dynamic b) 
-         { 
-             if (a.type == typeid(float))
-                { return ( abs(a.get!float() - b.get!float()) < 0.1f); } 
-             return true;
-         }).repeat(2);
+            (Dynamic a, Dynamic b) {
+        if (a.type == typeid(float))
+        {
+            return (abs(a.get!float() - b.get!float()) < 0.1f);
+        }
+        return true;
+    }).repeat(2);
     mocker.replay;
 
     // custom comparison example - treat similar floats as equals
@@ -1249,7 +1281,7 @@ unittest
     mocker.replay;
 
     dependency.foo = 7;
-    assert(dependency.foo ==7);
+    assert(dependency.foo == 7);
     //dependency.foot!int = 3;
     //assert(dependency.foot!int == 3);
     mocker.verify;
