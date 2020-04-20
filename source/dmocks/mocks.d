@@ -5,6 +5,7 @@ import dmocks.factory;
 public import dmocks.object_mock;
 import dmocks.repository;
 import dmocks.util;
+import std.traits;
 
 /++
     A class through which one creates mock objects and manages expectations about calls to their methods.
@@ -189,22 +190,23 @@ public class Mocker
          *
          * Returns an object that allows you to set various properties of the expectation,
          * such as return value, number of repetitions or matching options.
-         *
-         * Examples:
-         * ---
-         * Mocker mocker = new Mocker;
-         * Object obj = mocker.Mock!(Object);
-         * mocker.expect(obj.toString).returns("hello?");
-         * ---
          */
         ExpectationSetup expect(T)(lazy T methodCall)
         {
             auto pre = _repository.LastRecordedCallExpectation();
             methodCall();
             auto post = _repository.LastRecordedCallExpectation();
-            if (pre is post)
-                throw new InvalidOperationException("mocks.Mocker.expect: you did not call a method mocked by the mocker!");
+            enforce!InvalidOperationException(pre !is post,
+                    "mocks.Mocker.expect: you did not call a method mocked by the mocker!");
             return lastCall();
+        }
+
+        /// ditto
+        unittest
+        {
+            Mocker mocker = new Mocker;
+            Object obj = mocker.mock!(Object);
+            mocker.expect(obj.toString).returns("hello?");
         }
 
         private ExpectationSetup expectFallback(T)(lazy T methodCall)
@@ -264,6 +266,36 @@ public class Mocker
     }
 }
 
+/**
+ * Record new expectation that will exactly match method called in methodCall argument
+ *
+ * Returns an object that allows you to set various properties of the expectation,
+ * such as return value, number of repetitions or matching options.
+ */
+public template expectT(alias obj, string method)
+{
+    public TemplatedExpectationSetup!(typeof(__traits(getMember, obj, method))) expectT(
+            Mocker mocker, Parameters!(typeof(__traits(getMember, obj, method))) args)
+    {
+        auto pre = mocker._repository.LastRecordedCallExpectation();
+        __traits(getMember, obj, method)(args);
+        auto post = mocker._repository.LastRecordedCallExpectation();
+        enforce!InvalidOperationException(pre !is post,
+                "mocks.Mocker.expect: you did not call a method mocked by the mocker!");
+        return new typeof(return)(
+                mocker._repository.LastRecordedCallExpectation(),
+                mocker._repository.LastRecordedCall());
+    }
+}
+
+/// ditto
+unittest
+{
+    Mocker mocker = new Mocker;
+    Object obj = mocker.mock!(Object);
+    mocker.expectT!(obj, "toString")().returns("hello?");
+}
+
 /++
    An ExpectationSetup object allows you to set various properties of the expectation,
    such as: 
@@ -321,10 +353,7 @@ public class ExpectationSetup
     */
     ExpectationSetup repeat(int min, int max)
     {
-        if (min > max)
-        {
-            throw new InvalidOperationException("The specified range is invalid.");
-        }
+        enforce!InvalidOperationException(min <= max, "The specified range is invalid.");
         _expectation.repeatInterval = Interval(min, max);
         return this;
     }
@@ -400,6 +429,131 @@ public class ExpectationSetup
     * `opEquals` and `toString` are passed through automatically.
     */
     ExpectationSetup passThrough()
+    {
+        _expectation.action.passThrough = true;
+        return this;
+    }
+}
+
+public class TemplatedExpectationSetup(T)
+{
+    import dmocks.arguments;
+    import dmocks.expectation;
+    import dmocks.dynamic;
+    import dmocks.qualifiers;
+    import dmocks.call;
+
+    private alias Ret = ReturnType!T;
+
+    private alias Params = Parameters!T;
+
+    private CallExpectation _expectation;
+
+    private Call _setUpCall;
+
+    this(CallExpectation expectation, Call setUpCall)
+    in (expectation !is null, "can't create an ExpectationSetup if expectation is null")
+    in (setUpCall !is null, "can't create an ExpectationSetup if setUpCall is null")
+    {
+        _expectation = expectation;
+        _setUpCall = setUpCall;
+    }
+
+    /**
+     * Ignore method argument values in matching calls to this expectation.
+     */
+    TemplatedExpectationSetup ignoreArgs()
+    {
+        _expectation.arguments = new ArgumentsTypeMatch(_setUpCall.arguments, (Dynamic a, Dynamic b) => true);
+        return this;
+    }
+
+    /**
+     * Allow providing custom argument comparator for matching calls to this expectation.
+     */
+    TemplatedExpectationSetup customArgsComparator(bool delegate(Dynamic expected, Dynamic provided) del)
+    {
+        _expectation.arguments = new ArgumentsTypeMatch(_setUpCall.arguments, del);
+        return this;
+    }
+
+    /**
+     * This expectation must match to at least min number of calls and at most to max number of calls.
+     */
+    TemplatedExpectationSetup repeat(int min, int max)
+    {
+        enforce!InvalidOperationException(min <= max, "The specified range is invalid.");
+        _expectation.repeatInterval = Interval(min, max);
+        return this;
+    }
+
+    /**
+     * This expectation will match exactly i times.
+     */
+    TemplatedExpectationSetup repeat(int i)
+    {
+        repeat(i, i);
+        return this;
+    }
+
+    /**
+     * This expectation will match to any number of calls.
+     */
+    TemplatedExpectationSetup repeatAny()
+    {
+        return repeat(0, int.max);
+    }
+
+    /**
+     * When the method which matches this expectation is called execute the
+     * given delegate. The delegate's signature must match the signature
+     * of the called method. If it does not, an exception will be thrown.
+     * The called method will return whatever the given delegate returns.
+     * Examples:
+     * ---
+     * mocker.expect!(myObj, "myFunc")(0, null, null, 'a')
+     *     .ignoreArgs()
+     *     .action((int i, char[] s, Object o, char c) { return -1; });
+     * ---
+     */
+    TemplatedExpectationSetup action(Ret delegate(Params) action)
+    {
+        _expectation.action.action = dynamic(action);
+        return this;
+    }
+
+    /**
+     * Set the value to return when method matching this expectation is called on a mock object.
+     * Params:
+     *     value = the value to return
+     */
+    TemplatedExpectationSetup returns(Ret value)
+    {
+        _expectation.action.returnValue = dynamic(value);
+        return this;
+    }
+
+    /**
+     * When the method which matches this expectation is called,
+     * throw the given exception. If there are any
+     * actions specified (via the action method), they will not be executed.
+     */
+    TemplatedExpectationSetup throws(Exception e)
+    {
+        _expectation.action.toThrow = e;
+        return this;
+    }
+
+    /**
+     * Instead of returning or throwing a given value, pass the call through to
+     * the mocked type object. For mock***PassTo(obj) obj has to be valid for this to work.
+     *
+     * This is useful for example for enabling use of mock object in hashmaps by enabling
+     * toHash and opEquals of your class.
+     *
+     * `opEquals` and `toString` are passed through automatically.
+     */
+    TemplatedExpectationSetup passThrough()
     {
         _expectation.action.passThrough = true;
         return this;
@@ -725,6 +879,11 @@ private class TestClass
     {
         return "test 2";
     }
+
+    int test_int(int i)
+    {
+        return i;
+    }
 }
 
 @("return a value")
@@ -756,6 +915,29 @@ unittest
     mocker.expect(cl.test).repeat(0).returns("mrow?");
     mocker.replay();
     assertThrown!ExpectationViolationError(cl.test);
+}
+
+@("expect mismatched type")
+unittest
+{
+    Mocker mocker = new Mocker();
+    TestClass cl = mocker.mock!(TestClass);
+
+    void call_test(T)(T arg)
+    {
+        mocker.expectT!(cl, "test_int")(arg);
+    }
+
+    static assert(__traits(compiles, call_test(5)));
+    static assert(!__traits(compiles, call_test("string")));
+
+    void return_test(T)(T arg)
+    {
+        mocker.expectT!(cl, "test_int")(5).returns(arg);
+    }
+
+    static assert(__traits(compiles, return_test(5)));
+    static assert(!__traits(compiles, return_test("string")));
 }
 
 @("repeat single")

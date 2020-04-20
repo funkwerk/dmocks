@@ -161,6 +161,21 @@ mocker.expect(mocked.toHash).passThrough.repeatAny;
 mocker.expect(mocked.opEquals).ignoreArgs.passThrough.repeatAny;
 ```
 
+DMocks supports typesafe expectations.
+
+dmocks stores expected parameters and return values until a call happens. This can cause issues when the
+type of the return value doesn't match the actual type returned by the function, because dmocks will only error
+once it reaches the actual method call being mocked.
+
+To alleviate this, a new form of `expect` is added, `expectT`:
+
+```d
+mocker.expectT!(obj, "method")(args).returns(value);
+```
+
+Since `expectT` statically knows the return type of the method, `returns` can make sure that it is called with
+the correct return type.
+
 Supported platforms
 ---------------------
 DMocks should build with DMD 2.078 and newer (older versions were not tested, might work aswell) on any platform DMD supports, as it contains only platform independent code. Other compilers should build the project too.
