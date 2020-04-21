@@ -5,6 +5,8 @@ import dmocks.factory;
 public import dmocks.object_mock;
 import dmocks.repository;
 import dmocks.util;
+version (unittest) import std.exception : assertThrown;
+import std.exception : enforce;
 import std.traits;
 
 /++
@@ -565,9 +567,6 @@ alias ExpectationSetup ExternalCall;
 
 version (unittest)
 {
-    import std.exception;
-    import std.stdio;
-
     class Templated(T)
     {
     }
@@ -599,6 +598,8 @@ version (unittest)
 
         void print()
         {
+            import std.stdio : writeln;
+
             writeln(toString());
         }
     }
