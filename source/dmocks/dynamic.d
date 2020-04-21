@@ -1,6 +1,7 @@
 module dmocks.dynamic;
 
 import std.format;
+import std.meta : AliasSeq, ApplyLeft;
 import std.traits;
 
 /++
@@ -121,7 +122,7 @@ class DynamicT(T) : Dynamic
         }
 
         enum getTypeId(T) = typeid(T);
-        alias ConversionTargets = ImplicitConversionTargets!T;
+        alias ConversionTargets = ConstAwareImplicitConversionTargets!T;
 
         static if (ConversionTargets.length)
         {
@@ -165,7 +166,7 @@ class DynamicT(T) : Dynamic
             }
         }
 
-        foreach (Target; ImplicitConversionTargets!T)
+        foreach (Target; ConstAwareImplicitConversionTargets!T)
         {
             if (typeid(Target) == to)
             {
@@ -264,6 +265,23 @@ unittest
     auto d = dynamic(f);
 
     assertThrown!Exception(d.get!int);
+}
+
+private alias ConstAwareImplicitConversionTargets(T) = ImplicitConversionTargets!T;
+private alias ConstAwareImplicitConversionTargets(T : const Object) =
+        staticMap!(ApplyLeft!(CopyConstness, T), ImplicitConversionTargets!T);
+
+unittest
+{
+    static assert(is(ConstAwareImplicitConversionTargets!int == ImplicitConversionTargets!int));
+    static assert(is(ConstAwareImplicitConversionTargets!(A) == AliasSeq!(Object)));
+    // fixed in 2.090.0 as a side effect of https://github.com/dlang/phobos/pull/7313
+    static if (!is(ImplicitConversionTargets!(const A) == AliasSeq!()))
+    {
+        static assert(is(ConstAwareImplicitConversionTargets!(const A) == AliasSeq!(const Object)));
+        static assert(is(
+                ConstAwareImplicitConversionTargets!(immutable A) == AliasSeq!(immutable Object)));
+    }
 }
 
 /+ ImplicitConversionTargets doesn't include alias thises
