@@ -275,9 +275,13 @@ unittest
 {
     static assert(is(ConstAwareImplicitConversionTargets!int == ImplicitConversionTargets!int));
     static assert(is(ConstAwareImplicitConversionTargets!(A) == AliasSeq!(Object)));
-    static assert(is(ConstAwareImplicitConversionTargets!(const A) == AliasSeq!(const Object)));
-    static assert(is(
-            ConstAwareImplicitConversionTargets!(immutable A) == AliasSeq!(immutable Object)));
+    // fixed in 2.090.0 as a side effect of https://github.com/dlang/phobos/pull/7313
+    static if (!is(ImplicitConversionTargets!(const A) == AliasSeq!()))
+    {
+        static assert(is(ConstAwareImplicitConversionTargets!(const A) == AliasSeq!(const Object)));
+        static assert(is(
+                ConstAwareImplicitConversionTargets!(immutable A) == AliasSeq!(immutable Object)));
+    }
 }
 
 /+ ImplicitConversionTargets doesn't include alias thises
