@@ -236,6 +236,12 @@ struct QualifierMatch
             (opt.length != 0 ? " (optional: " ~ opt ~ ")" : "");
     }
 
+    string diffToString(string[] against) const
+    {
+        if (matches(against)) return toString();
+        else return yellow(toString());
+    }
+
     /// returns true if all required qualifiers are present and all forbidden are absent in against array
     bool matches(string[] against) const
     {

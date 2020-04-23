@@ -67,3 +67,26 @@ public class MocksSetupException : Exception
         super(typeof(this).stringof ~ ": " ~ msg);
     }
 }
+
+public string yellow(string text)
+{
+    if (enableAnsiEscape)
+    {
+        return "\x1b[93m" ~ text ~ "\x1b[0m";
+    }
+    return text;
+}
+
+private bool enableAnsiEscape()
+{
+    version (Posix)
+    {
+        import core.sys.posix.unistd : isatty;
+
+        return isatty(1 /* stdout */) ? true : false;
+    }
+    else
+    {
+        return false;
+    }
+}

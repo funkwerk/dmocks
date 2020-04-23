@@ -1,6 +1,7 @@
 module dmocks.arguments;
 
 import dmocks.dynamic;
+import dmocks.util;
 import std.algorithm;
 import std.conv;
 import std.range;
@@ -9,6 +10,7 @@ interface ArgumentsMatch
 {
     bool matches(Dynamic[] args);
     string toString();
+    string diffToString(Dynamic[] args);
 }
 
 //TODO: allow richer specification of arguments
@@ -28,6 +30,34 @@ class StrictArgumentsMatch : ArgumentsMatch
     override string toString()
     {
         return _arguments.formatArguments();
+    }
+
+    override string diffToString(Dynamic[] args)
+    {
+        import std.format : format;
+
+        if (args.length != _arguments.length)
+        {
+            return toString ~ " " ~ yellow("(length mismatch)");
+        }
+        string[] argInfos;
+        foreach (e; zip(_arguments, args))
+        {
+            string info = e[0].typename ~ " " ~ e[0].toString();
+            if (e[0] != e[1])
+            {
+                if (e[0].toString() != e[1].toString())
+                {
+                    info ~= " " ~ yellow(format!"(but got %s)"(e[1]));
+                }
+                else
+                {
+                    info ~= " " ~ yellow("(same toString but unequal)");
+                }
+            }
+            argInfos ~= info;
+        }
+        return "(" ~ argInfos.join(", ") ~ ")";
     }
 }
 
@@ -61,6 +91,27 @@ class ArgumentsTypeMatch : ArgumentsMatch
     override string toString()
     {
         return "(" ~ _arguments.map!(a => a.typename).join(", ") ~ ")";
+    }
+
+    override string diffToString(Dynamic[] args)
+    {
+        import std.format : format;
+
+        if (args.length != _arguments.length)
+        {
+            return toString ~ " " ~ yellow("(length mismatch)");
+        }
+        string[] argInfos = null;
+        foreach (e; zip(_arguments, args))
+        {
+            string info = e[0].typename;
+            if (e[0].type != e[1].type)
+                info ~= " " ~ yellow(format!"(but got %s)"(e[1].type));
+            if (!_del(e[0], e[1]))
+                info ~= " " ~ yellow("(but action failed)");
+            argInfos ~= info;
+        }
+        return "(" ~ argInfos.join(", ") ~ ")";
     }
 }
 
