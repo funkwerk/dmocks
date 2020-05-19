@@ -52,7 +52,21 @@ class InvalidOperationException : Exception
     }
 }
 
+/**
+ * Thrown when an expectation was violated during unittest execution.
+ */
 public class ExpectationViolationError : Error
+{
+    this(string msg, string file = __FILE__, size_t line = __LINE__)
+    {
+        super(msg, file, line);
+    }
+}
+
+/**
+ * Thrown when an expectation violation was found during mocker verification.
+ */
+public class ExpectationViolationException : Exception
 {
     this(string msg, string file = __FILE__, size_t line = __LINE__)
     {

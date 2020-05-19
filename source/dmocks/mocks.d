@@ -51,7 +51,7 @@ public class Mocker
          * checkUnexpectedCalls - Check to see if there are any calls that there were no
          * expectation set up for.
          *
-         * Throws an ExpectationViolationError if those issues occur.
+         * Throws an ExpectationViolationException if those issues occur.
          */
         void verify(bool checkUnmatchedExpectations = true, bool checkUnexpectedCalls = true)
         {
@@ -964,7 +964,7 @@ unittest
     cl.test;
     mocker.lastCall().repeat(2, 2).returns("mew.");
     mocker.replay();
-    assertThrown!ExpectationViolationError(mocker.verify());
+    assertThrown!ExpectationViolationException(mocker.verify());
 }
 
 @("delegate payload")
@@ -1114,7 +1114,7 @@ unittest
     obj.toHash; // unexpected tohash calls
     obj.toString;
     obj.toHash;
-    assertThrown!ExpectationViolationError(mocker.verify(false, true));
+    assertThrown!ExpectationViolationException(mocker.verify(false, true));
     mocker.verify(true, false);
 }
 

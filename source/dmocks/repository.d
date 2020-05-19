@@ -179,7 +179,7 @@ class MockRepository
 
         if (!expectationError.empty)
         {
-            throw new ExpectationViolationError(expectationError);
+            throw new ExpectationViolationException(expectationError);
         }
     }
 
