@@ -187,8 +187,8 @@ class MockRepository
     {
         auto expectationError = appender!string;
         auto unexpectedCalls = _unexpectedCalls;
+        Expectation rootGroupExpectation = _rootGroupExpectation;
 
-        // return false to abort
         void walkExpectations(ref Expectation expectation)
         {
             if (auto groupExpectation = cast(GroupExpectation) expectation)
@@ -233,14 +233,12 @@ class MockRepository
         }
         if (checkUnmatchedExpectations && checkUnexpectedCalls)
         {
-            Expectation expectation = _rootGroupExpectation;
-            walkExpectations(expectation);
-            _rootGroupExpectation.expectations = expectation ? (cast(GroupExpectation) expectation).expectations : null;
+            walkExpectations(rootGroupExpectation);
         }
-        if (checkUnmatchedExpectations && !_rootGroupExpectation.satisfied)
+        if (checkUnmatchedExpectations && rootGroupExpectation && !rootGroupExpectation.satisfied)
         {
             expectationError ~= "\n";
-            expectationError ~= _rootGroupExpectation.toString();
+            expectationError ~= rootGroupExpectation.toString();
         }
         if (checkUnexpectedCalls && !unexpectedCalls.empty)
         {
