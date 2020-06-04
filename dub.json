@@ -15,13 +15,19 @@
     "configurations": [
         {
             "name": "library",
-            "targetType": "library"
+            "targetType": "library",
+            "dependencies": {
+              "dshould": ">=1.3.0"
+            }
         },
         {
             "name": "unittest",
             "targetType": "executable",
             "sourcePaths": ["test"],
-            "mainSourceFile": "test/main.d"
+            "mainSourceFile": "test/main.d",
+            "dependencies": {
+              "dshould": ">=1.3.0"
+            }
         }
     ]
 }

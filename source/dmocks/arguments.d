@@ -108,7 +108,23 @@ class ArgumentsTypeMatch : ArgumentsMatch
             if (e[0].type != e[1].type)
                 info ~= " " ~ yellow(format!"(but got %s)"(e[1].type));
             if (!_del(e[0], e[1]))
-                info ~= " " ~ yellow("(but action failed)");
+            {
+                if (e[0].toString() != e[1].toString())
+                {
+                    import dshould.stringcmp : oneLineDiff;
+
+                    auto diff = oneLineDiff(e[0].toString(), e[1].toString());
+                    info ~= " "
+                        ~ yellow("(but comparator failed. ")
+                        ~ format!"Info: expected.toString %s, got.toString %s"(
+                            diff.original, diff.target)
+                        ~ yellow(")");
+                }
+                else
+                {
+                    info ~= " " ~ yellow("(but comparator failed. Info: expected.toString == got.toString)");
+                }
+            }
             argInfos ~= info;
         }
         return "(" ~ argInfos.join(", ") ~ ")";
