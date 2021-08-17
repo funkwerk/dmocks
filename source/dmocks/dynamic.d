@@ -267,16 +267,25 @@ unittest
     assertThrown!Exception(d.get!int);
 }
 
-private alias ConstAwareImplicitConversionTargets(T) = ImplicitConversionTargets!T;
+static if (__traits(compiles, AllImplicitConversionTargets))
+{
+    private alias AllImplicitConversionTargets = std.traits.AllImplicitConversionTargets;
+}
+else
+{
+    private alias AllImplicitConversionTargets = std.traits.ImplicitConversionTargets;
+}
+
+private alias ConstAwareImplicitConversionTargets(T) = AllImplicitConversionTargets!T;
 private alias ConstAwareImplicitConversionTargets(T : const Object) =
-        staticMap!(ApplyLeft!(CopyConstness, T), ImplicitConversionTargets!T);
+        staticMap!(ApplyLeft!(CopyConstness, T), AllImplicitConversionTargets!T);
 
 unittest
 {
-    static assert(is(ConstAwareImplicitConversionTargets!int == ImplicitConversionTargets!int));
+    static assert(is(ConstAwareImplicitConversionTargets!int == AllImplicitConversionTargets!int));
     static assert(is(ConstAwareImplicitConversionTargets!(A) == AliasSeq!(Object)));
     // fixed in 2.090.0 as a side effect of https://github.com/dlang/phobos/pull/7313
-    static if (!is(ImplicitConversionTargets!(const A) == AliasSeq!()))
+    static if (!is(AllImplicitConversionTargets!(const A) == AliasSeq!()))
     {
         static assert(is(ConstAwareImplicitConversionTargets!(const A) == AliasSeq!(const Object)));
         static assert(is(
@@ -284,7 +293,7 @@ unittest
     }
 }
 
-/+ ImplicitConversionTargets doesn't include alias thises
+/+ AllImplicitConversionTargets doesn't include alias thises
 unittest
 {
     auto d = dynamic(D());
